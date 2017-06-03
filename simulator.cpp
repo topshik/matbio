@@ -19,7 +19,7 @@ public:
 class Grid {
 public:
     int width, height;
-    int n;
+    int n;                                             // FIXME: private and public fields
     int total_population;
     std::vector<std::vector<Cell> > cells;
     Grid() {};
@@ -33,7 +33,7 @@ public:
             for (size_t j = 0; j != n; ++j) {          // grid is initiated with 1 unit in every cell
                 init_cell.population = 1;
                 init_cell.x = (width / n) * i;
-                init_cell.y = (height / n) * j;
+                init_cell.y = (height / n) * j;        // FIXME: overload []
                 init_cell.row = i;
                 init_cell.column = j;
                 cells[i].push_back(init_cell);
