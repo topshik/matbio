@@ -27,6 +27,7 @@ public:
     : width(Width), height(Height), n(N) {
         std::vector<Cell> init_cells;
         Cell init_cell;
+        total_population = (n + 1) * (n + 1);
         for (size_t i = 0; i != n; ++i) {
             cells.push_back(init_cells);
             for (size_t j = 0; j != n; ++j) {          // grid is inited with 1 unit in every cell
@@ -49,12 +50,12 @@ public:
     }
 };
 
-double distance(Cell from, Cell to) {
+double distance(const Cell &from, const Cell &to) {
     return std::sqrt(std::pow((from.x - to.x), 2) + std::pow((from.y - to.y), 2));
 }
 
 int max_distance = 2.5;
-std::vector<Cell> neighbour_birth_influence(Grid grid, Cell cell) {
+std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) {
     std::vector<Cell> result;
     int border_x = max_distance * grid.n / grid.width;  // Max distance from cell by x
     int border_y = max_distance * grid.n / grid.height;  // Max distance from cell by y
@@ -70,7 +71,7 @@ std::vector<Cell> neighbour_birth_influence(Grid grid, Cell cell) {
     return result;
 };
 
-void iteration(Grid grid) {
+void iteration(Grid &grid) {
     std::vector<std::vector<double> > nobirth_matrix(grid.height, std::vector<double>(grid.width, 1));
 
     /* Counting (no)birth probabilities */
@@ -89,6 +90,7 @@ void iteration(Grid grid) {
         for (size_t j = 0; j < nobirth_matrix[0].size(); ++j) {
             if ((double)rand() / RAND_MAX > nobirth_matrix[i][j]) {
                 ++grid.cells[i][j].population;
+                ++grid.total_population;
             }
 
             /* Use binominal_distribution instead! */
@@ -99,13 +101,17 @@ void iteration(Grid grid) {
                 }
             }
             grid.cells[i][j].population -= died;
+            grid.total_population -= died;
         }
     }
 }
-/*
+
 int main() {
-    Grid grid (10, 10, 10000);
+    Grid grid(10, 10, 10000);
 
-
+    size_t iterations = 10000;
+    for (size_t i = 0; i < iterations; ++i) {
+        iteration(grid);
+        std::cout << i << "\t" << grid.total_population << std::endl;
+    }
 }
-*/
