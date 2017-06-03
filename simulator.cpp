@@ -30,7 +30,7 @@ public:
         total_population = (n + 1) * (n + 1);
         for (size_t i = 0; i != n; ++i) {
             cells.push_back(init_cells);
-            for (size_t j = 0; j != n; ++j) {          // grid is inited with 1 unit in every cell
+            for (size_t j = 0; j != n; ++j) {          // grid is initiated with 1 unit in every cell
                 init_cell.population = 1;
                 init_cell.x = (width / n) * i;
                 init_cell.y = (height / n) * j;
@@ -40,20 +40,13 @@ public:
             }
         }
     };
-
-    Cell cell(int i, int j) {
-        return cells[i][j];
-    }
-
-    int cell_population(int i, int j) {
-        return cells[i][j].population;
-    }
 };
 
 double distance(const Cell &from, const Cell &to) {
     return std::sqrt(std::pow((from.x - to.x), 2) + std::pow((from.y - to.y), 2));
 }
 
+/* Analyzing which cells are appropriate to be counted */
 int max_distance = 2.5;
 std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) {
     std::vector<Cell> result;
@@ -74,7 +67,7 @@ std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) 
 void iteration(Grid &grid) {
     std::vector<std::vector<double> > nobirth_matrix(grid.height, std::vector<double>(grid.width, 1));
 
-    /* Counting (no)birth probabilities */
+    /* Counting (no)birth probabilities matrix*/
     for (auto row : grid.cells) {
         for (auto cell : row) {
             std::vector<Cell> neighbours = neighbour_birth_influence(grid, cell);
@@ -86,16 +79,16 @@ void iteration(Grid &grid) {
     }
 
     /* Giving birth and killing*/
-    for (size_t i = 0; i < nobirth_matrix.size(); ++i) {
-        for (size_t j = 0; j < nobirth_matrix[0].size(); ++j) {
+    for (size_t i = 0; i != nobirth_matrix.size(); ++i) {
+        for (size_t j = 0; j != nobirth_matrix[0].size(); ++j) {
             if ((double)rand() / RAND_MAX > nobirth_matrix[i][j]) {
                 ++grid.cells[i][j].population;
                 ++grid.total_population;
             }
 
-            /* Use binominal_distribution instead! */
+            /* FIXME: Use binominal_distribution instead! */
             int died = 0;
-            for (size_t k = 0; k < grid.cells[i][j].population; ++k) {
+            for (size_t k = 0; k != grid.cells[i][j].population; ++k) {
                 if ((double)rand() / RAND_MAX < death_rate) {
                     ++died;
                 }
@@ -137,4 +130,5 @@ int main(int argc, char **argv) {
         iteration(grid);
         std::cout << i << "\t" << grid.total_population << std::endl;
     }
+    return 0;
 }
