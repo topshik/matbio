@@ -106,11 +106,34 @@ void iteration(Grid &grid) {
     }
 }
 
-int main() {
-    Grid grid(10, 10, 10000);
+int main(int argc, char **argv) {
 
-    size_t iterations = 10000;
-    for (size_t i = 0; i < iterations; ++i) {
+    std::string usage_string = "Usage: " + std::string(argv[0]) + " [size] [discretization] [iterations]";
+    if (argc != 4) {
+        std::cerr << "Wrong number of arguments\n" << usage_string << std::endl;
+        return 1;
+    }
+    char *endptr;
+    long int size = strtol(argv[1], &endptr, 10);
+    if (!*argv[1] || *endptr) {
+        std::cerr << "Wrong size: " << argv[1] << std::endl << usage_string << std::endl;
+        return 1;
+    }
+    long int discretization = strtol(argv[2], &endptr, 10);
+    if (!*argv[2] || *endptr) {
+        std::cerr << "Wrong discretization: " << argv[2] << std::endl << usage_string << std::endl;
+        return 1;
+    }
+    long int iterations = strtol(argv[3], &endptr, 10);
+    if (!*argv[3] || *endptr) {
+        std::cerr << "Wrong number of iterations: " << argv[3] << std::endl << usage_string << std::endl;
+        return 1;
+    }
+
+    Grid grid(size, size, discretization);
+
+    std::cout << 0 << "\t" << grid.total_population << std::endl;
+    for (size_t i = 1; i <= iterations; ++i) {
         iteration(grid);
         std::cout << i << "\t" << grid.total_population << std::endl;
     }
