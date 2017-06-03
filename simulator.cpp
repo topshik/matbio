@@ -1,7 +1,8 @@
-#include <stdio>
+#include <iostream>
 #include <vector>
 
-struct Cell {
+class Cell {
+public:
     int population;
     double x, y;
     Cell() {};
@@ -10,15 +11,16 @@ struct Cell {
 };
 
 class Grid {
+public:
     int length_x, length_y;
     int n;
-    int population
-    std::vector<vector<cell>> cells;
+    int total_population;
+    std::vector<std::vector<Cell> > cells;
     Grid() {};
     Grid(int Length_x, int Length_y, int N)
-    : length_x(Length_x), length_y(Length_y); n(N) {
+    : length_x(Length_x), length_y(Length_y), n(N) {
         std::vector<Cell> init_cells;
-        Cell init_cell();
+        Cell init_cell;
         for (size_t i = 0; i != n; ++i) {
             cells.push_back(init_cells);
             for (size_t j = 0; j != n; ++j) {
@@ -45,8 +47,8 @@ class Grid {
 void iteration() {
 
 }
+*/
 
 int main() {
 
 }
-*/
