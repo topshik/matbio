@@ -1,13 +1,19 @@
 #include <iostream>
 #include <vector>
 
+const double birth_rate = 0.4;
+const double death_rate = 0.2;
+
 class Cell {
 public:
     int population;
     double x, y;
+    std::vector<double> death_rates;
     Cell() {};
     Cell(int Population, double X, double Y)
-    : population(Population), x(X), y(Y) {};
+    : population(Population), x(X), y(Y) {
+    death_rates = std::vector<double> (population, death_rate);
+    };
 };
 
 class Grid {
@@ -42,13 +48,11 @@ public:
         return cells[i][j].population;
     }
 };
-
 /*
-void iteration() {
-
+void iteration(Grid grid) {
+    for ()
 }
 */
-
 int main() {
 
 }
