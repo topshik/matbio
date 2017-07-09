@@ -2,7 +2,9 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <iomanip>
 #include <vector>
+#include <random>
 
 const double birth_rate = 0.4;
 const double death_rate = 0.2;
@@ -28,19 +30,33 @@ public:
     : width(Width), height(Height), n(N) {
         std::vector<Cell> init_cells;
         Cell init_cell;
-        total_population = (n + 1) * (n + 1);
+        total_population = n * n;
         for (size_t i = 0; i != n; ++i) {
             cells.push_back(init_cells);
             for (size_t j = 0; j != n; ++j) {          // grid is initiated with 1 unit in every cell
                 init_cell.population = 1;
-                init_cell.x = (width / n) * i;
-                init_cell.y = (height / n) * j;        // FIXME: overload []
+                init_cell.x = (width / n) * ((double)i + 0.5);
+                init_cell.y = (height / n) * ((double)j + 0.5);        // FIXME: overload []
                 init_cell.row = i;
                 init_cell.column = j;
                 cells[i].push_back(init_cell);
             }
         }
     };
+
+    void print(std::ostream &out) const {
+        for (auto i : cells) {
+            for (auto j : i) {
+                out << std::setw(3) << j.population << " ";
+            }
+            out << std::endl;
+        }
+    }
+
+    friend std::ostream &operator<<(std::ostream &out, const Grid &grid) {
+        grid.print(out);
+        return out;
+    }
 };
 
 double distance(const Cell &from, const Cell &to) {
@@ -48,15 +64,15 @@ double distance(const Cell &from, const Cell &to) {
 }
 
 /* Analyzing which cells are appropriate to be counted */
-int max_distance = 2.5;
+double max_distance = 3;
 std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) {
     std::vector<Cell> result;
-    int border_x = max_distance * grid.n / grid.width;  // Max distance from cell by x
-    int border_y = max_distance * grid.n / grid.height;  // Max distance from cell by y
+    int border_x = ceil(max_distance * grid.n / grid.width);  // Max distance from cell by x
+    int border_y = ceil(max_distance * grid.n / grid.height);  // Max distance from cell by y
     for (size_t i = (cell.row - border_x < 0 ? 0 : cell.row - border_x); i <
-                    (cell.row + border_x > grid.width ? 0 : cell.row + border_x); ++i) {
-        for (size_t j = (cell.column - border_y < 0 ? 0 : cell.column - border_y); i <
-                    (cell.column + border_y > grid.height ? 0 : cell.column + border_y); ++i) {
+                    (cell.row + border_x >= grid.n ? grid.n : cell.row + border_x); ++i) {
+        for (size_t j = (cell.column - border_y < 0 ? 0 : cell.column - border_y); j <
+                    (cell.column + border_y >= grid.n ? grid.n : cell.column + border_y); ++j) {
             if (distance(cell, grid.cells[i][j]) < max_distance) {
                 result.push_back(grid.cells[i][j]);
             }
@@ -66,7 +82,7 @@ std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) 
 };
 
 void iteration(Grid &grid) {
-    std::vector<std::vector<double> > nobirth_matrix(grid.height, std::vector<double>(grid.width, 1));
+    std::vector<std::vector<double> > nobirth_matrix(grid.n, std::vector<double>(grid.n, 1));
 
     /* Counting (no)birth probabilities matrix*/
     for (auto row : grid.cells) {
@@ -97,6 +113,12 @@ void iteration(Grid &grid) {
                     ++died;
                 }
             }
+
+            // std::default_random_engine generator;
+            // std::binomial_distribution<int> distribution(grid.cells[i][j].population, 1 - death_rate);
+            // int died = distribution(generator);
+
+
             grid.cells[i][j].population -= died;
             grid.total_population -= died;
         }
@@ -129,7 +151,6 @@ int main(int argc, char **argv) {
 
     srand(time(NULL));
     Grid grid(size, size, discretization);
-
     std::cout << 0 << "\t" << grid.total_population << std::endl;
     for (size_t i = 1; i <= iterations; ++i) {
         iteration(grid);
