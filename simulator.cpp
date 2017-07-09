@@ -1,5 +1,6 @@
 #include <cmath>
 #include <cstdlib>
+#include <ctime>
 #include <iostream>
 #include <vector>
 
@@ -70,10 +71,13 @@ void iteration(Grid &grid) {
     /* Counting (no)birth probabilities matrix*/
     for (auto row : grid.cells) {
         for (auto cell : row) {
-            std::vector<Cell> neighbours = neighbour_birth_influence(grid, cell);
-            for (auto neighbour : neighbours) {
-                double birth_prob = birth_rate * std::exp(-std::pow(distance(neighbour, cell), 2));
-                nobirth_matrix[neighbour.row][neighbour.column] *= (1 - birth_prob);
+            if (cell.population > 0) {
+                std::vector<Cell> neighbours = neighbour_birth_influence(grid, cell);
+                for (auto neighbour : neighbours) {
+                    double cell_influence = pow(std::exp(-std::pow(distance(neighbour, cell), 2)), cell.population);
+                    double birth_prob = birth_rate * cell_influence;
+                    nobirth_matrix[neighbour.row][neighbour.column] *= (1 - birth_prob);
+                }
             }
         }
     }
@@ -123,6 +127,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    srand(time(NULL));
     Grid grid(size, size, discretization);
 
     std::cout << 0 << "\t" << grid.total_population << std::endl;
