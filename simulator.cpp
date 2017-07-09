@@ -57,6 +57,15 @@ public:
         grid.print(out);
         return out;
     }
+
+    std::vector<Cell> & operator[] (int x) {
+        // std::cout << "post" << std::endl;             // Debug line
+        return cells[x];
+    }
+    std::vector<Cell> operator[] (int x) const {
+        // std::cout << "get" << std::endl;              // Debug line
+        return cells[x];
+    }
 };
 
 double distance(const Cell &from, const Cell &to) {
