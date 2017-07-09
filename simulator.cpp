@@ -106,18 +106,12 @@ void iteration(Grid &grid) {
                 ++grid.total_population;
             }
 
-            /* FIXME: Use binominal_distribution instead! */
             int died = 0;
             for (size_t k = 0; k != grid.cells[i][j].population; ++k) {
                 if ((double)rand() / RAND_MAX < death_rate) {
                     ++died;
                 }
             }
-
-            // std::default_random_engine generator;
-            // std::binomial_distribution<int> distribution(grid.cells[i][j].population, 1 - death_rate);
-            // int died = distribution(generator);
-
 
             grid.cells[i][j].population -= died;
             grid.total_population -= died;
