@@ -28,7 +28,7 @@ public:
     : width(Width), height(Height), n(N) {
         std::vector<Cell> init_cells;
         Cell init_cell;
-        total_population = (n + 1) * (n + 1);
+        total_population = n * n;
         for (size_t i = 0; i != n; ++i) {
             cells.push_back(init_cells);
             for (size_t j = 0; j != n; ++j) {          // grid is initiated with 1 unit in every cell
@@ -41,6 +41,7 @@ public:
             }
         }
     };
+
 };
 
 double distance(const Cell &from, const Cell &to) {
