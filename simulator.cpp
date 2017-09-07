@@ -4,8 +4,8 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-#include <vector>
 #include <random>
+#include <vector>
 
 const double birth_rate = 0.4;
 const double death_rate = 0.2;
@@ -16,30 +16,28 @@ public:
     int population, row, column;
     double x, y;
     Cell() {};
-    Cell(size_t Population, double X, double Y)
+    Cell(int Population, double X, double Y)
     : population(Population), x(X), y(Y) {};
 };
 
 class Grid {
 public:
-    size_t width, height, n, total_population;         // FIXME: private and public fields
+    double width, height;
+    size_t n, total_population;         // FIXME: private and public fields
     std::vector<std::vector<Cell> > cells;
     Grid() {};
-    Grid(int Width, int Height, int N)
-    : width(Width), height(Height), n(N) {
-        std::vector<Cell> init_cells;
+    Grid(size_t Width, size_t Height, size_t N, size_t Init_population)
+    : width(Width), height(Height), n(N), total_population(Init_population) {
+        cells = std::vector<std::vector<Cell> >(n, std::vector<Cell>(n));
         Cell init_cell;
-        total_population = n * n;
-        for (size_t i = 0; i != n; ++i) {
-            cells.push_back(init_cells);
-            for (size_t j = 0; j != n; ++j) {          // grid is initiated with 1 unit in every cell
-                init_cell.population = 1;
-                init_cell.x = (width / n) * ((double)i + 0.5);
-                init_cell.y = (height / n) * ((double)j + 0.5);
-                init_cell.row = i;
-                init_cell.column = j;
-                cells[i].push_back(init_cell);
-            }
+
+        for (size_t i = 0; i != total_population; ++i) {
+            init_cell.population = 1;
+            init_cell.row = rand() % n;
+            init_cell.column = rand() % n;
+            init_cell.x = (width / n) * ((double)init_cell.column + 0.5);
+            init_cell.y = (height / n) * ((double)init_cell.row + 0.5);
+            cells[init_cell.row][init_cell.column] = init_cell;
         }
     };
 
@@ -146,7 +144,6 @@ std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) 
 
 void iteration(Grid &grid) {
     std::vector<std::vector<double> > nobirth_matrix(grid.n, std::vector<double>(grid.n, 1));
-
     /* Counting (no)birth probabilities matrix*/
     for (auto row : grid.cells) {
         for (auto cell : row) {
@@ -184,8 +181,8 @@ void iteration(Grid &grid) {
 
 int main(int argc, char **argv) {
 
-    std::string usage_string = "Usage: " + std::string(argv[0]) + " [size] [discretization] [iterations] [wall type]";
-    if (argc != 5) {
+    std::string usage_string = "Usage: " + std::string(argv[0]) + " [size] [discretization] [iterations] [initial population] [wall type]";
+    if (argc != 6) {
         std::cerr << "Wrong number of arguments\n" << usage_string << std::endl;
         return 1;
     }
@@ -209,19 +206,23 @@ int main(int argc, char **argv) {
         std::cerr << "Wrong number of iterations: " << argv[3] << std::endl << usage_string << std::endl;
         return 1;
     }
-
-    wall = strtol(argv[4], &endptr, 10);
+    long int init_population = strtol(argv[4], &endptr, 10);
     if (!*argv[4] || *endptr) {
-        std::cerr << "Wrong wall type:" << argv[4] << "\n0 - killing, 1 - reflecting, 2 - reflecting to wall"<< std::endl << usage_string << std::endl;
+        std::cerr << "Wrong initial population: " << argv[4] << std::endl;
+        return 1;
+    }
+
+    wall = strtol(argv[5], &endptr, 10);
+    if (!*argv[5] || *endptr) {
+        std::cerr << "Wrong wall type:" << argv[5] << "\n0 - killing, 1 - reflecting, 2 - reflecting to wall"<< std::endl << usage_string << std::endl;
         return 1;
     }
 
     std::ofstream population, init_density, density;
     population.open("population.csv");
 
-    //srand(time(NULL));
     srand(42);
-    Grid grid(size, size, discretization);
+    Grid grid(size, size, discretization, init_population);
 
     init_density.open("init_density.csv");
     for (auto row : grid.cells) {
