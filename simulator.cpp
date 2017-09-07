@@ -11,19 +11,16 @@ const double death_rate = 0.2;
 
 class Cell {
 public:
-    int population;
+    size_t population, row, column;
     double x, y;
-    int row, column;
     Cell() {};
-    Cell(int Population, double X, double Y)
+    Cell(size_t Population, double X, double Y)
     : population(Population), x(X), y(Y) {};
 };
 
 class Grid {
 public:
-    int width, height;                                 // FIXME: private and public fields
-    int n;                                             // number of cells in a row
-    int total_population;
+    size_t width, height, n, total_population;         // FIXME: private and public fields
     std::vector<std::vector<Cell> > cells;
     Grid() {};
     Grid(int Width, int Height, int N)
@@ -155,7 +152,7 @@ int main(int argc, char **argv) {
     srand(time(NULL));
     Grid grid(size, size, discretization);
     std::cout << 0 << "\t" << grid.total_population << std::endl;
-    for (size_t i = 1; i <= iterations; ++i) {
+    for (long int i = 1; i <= iterations; ++i) {
         iteration(grid);
         std::cout << i << "\t" << grid.total_population << std::endl;
     }
