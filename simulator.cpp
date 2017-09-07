@@ -11,7 +11,7 @@ const double death_rate = 0.2;
 
 class Cell {
 public:
-    size_t population, row, column;
+    int population, row, column;
     double x, y;
     Cell() {};
     Cell(size_t Population, double X, double Y)
@@ -23,7 +23,7 @@ public:
     size_t width, height, n, total_population;         // FIXME: private and public fields
     std::vector<std::vector<Cell> > cells;
     Grid() {};
-    Grid(int Width, int Height, int N)
+    Grid(size_t Width, size_t Height, size_t N)
     : width(Width), height(Height), n(N) {
         std::vector<Cell> init_cells;
         Cell init_cell;
