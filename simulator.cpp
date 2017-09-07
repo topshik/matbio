@@ -11,7 +11,7 @@ const double death_rate = 0.2;
 
 class Cell {
 public:
-    size_t population, row, column;
+    int population, row, column;
     double x, y;
     Cell() {};
     Cell(size_t Population, double X, double Y)
