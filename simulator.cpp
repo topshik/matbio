@@ -21,8 +21,8 @@ public:
 
 class Grid {
 public:
-    int width, height;
-    int n;                                             // FIXME: private and public fields
+    int width, height;                                 // FIXME: private and public fields
+    int n;                                             // number of cells in a row
     int total_population;
     std::vector<std::vector<Cell> > cells;
     Grid() {};
@@ -36,7 +36,7 @@ public:
             for (size_t j = 0; j != n; ++j) {          // grid is initiated with 1 unit in every cell
                 init_cell.population = 1;
                 init_cell.x = (width / n) * ((double)i + 0.5);
-                init_cell.y = (height / n) * ((double)j + 0.5);        // FIXME: overload []
+                init_cell.y = (height / n) * ((double)j + 0.5);
                 init_cell.row = i;
                 init_cell.column = j;
                 cells[i].push_back(init_cell);
@@ -78,10 +78,10 @@ std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) 
     std::vector<Cell> result;
     int border_x = ceil(max_distance * grid.n / grid.width);  // Max distance from cell by x
     int border_y = ceil(max_distance * grid.n / grid.height);  // Max distance from cell by y
-    for (size_t i = (cell.row - border_x < 0 ? 0 : cell.row - border_x); i <
-                    (cell.row + border_x >= grid.n ? grid.n : cell.row + border_x); ++i) {
-        for (size_t j = (cell.column - border_y < 0 ? 0 : cell.column - border_y); j <
-                    (cell.column + border_y >= grid.n ? grid.n : cell.column + border_y); ++j) {
+    for (size_t i = (cell.column - border_x < 0 ? 0 : cell.column - border_x); i <
+                    (cell.column + border_x >= grid.n ? grid.n : cell.column + border_x); ++i) {
+        for (size_t j = (cell.row - border_y < 0 ? 0 : cell.row - border_y); j <
+                    (cell.row + border_y >= grid.n ? grid.n : cell.row + border_y); ++j) {
             if (distance(cell, grid.cells[i][j]) < max_distance) {
                 result.push_back(grid.cells[i][j]);
             }
@@ -99,7 +99,7 @@ void iteration(Grid &grid) {
             if (cell.population > 0) {
                 std::vector<Cell> neighbours = neighbour_birth_influence(grid, cell);
                 for (auto neighbour : neighbours) {
-                    double cell_influence = pow(std::exp(-std::pow(distance(neighbour, cell), 2)), cell.population);
+                    double cell_influence = pow(std::exp(-std::pow(distance(neighbour, cell), 2) / 2), cell.population);
                     double birth_prob = birth_rate * cell_influence;
                     nobirth_matrix[neighbour.row][neighbour.column] *= (1 - birth_prob);
                 }
