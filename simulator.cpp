@@ -1,6 +1,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <random>
@@ -8,6 +9,7 @@
 
 const double birth_rate = 0.4;
 const double death_rate = 0.2;
+int wall;
 
 class Cell {
 public:
@@ -73,12 +75,67 @@ std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) 
     std::vector<Cell> result;
     int border_x = ceil(max_distance * grid.n / grid.width);  // Max distance from cell by x
     int border_y = ceil(max_distance * grid.n / grid.height);  // Max distance from cell by y
-    for (size_t i = (cell.column - border_x < 0 ? 0 : cell.column - border_x); i <
-                    (cell.column + border_x >= grid.n ? grid.n : cell.column + border_x); ++i) {
-        for (size_t j = (cell.row - border_y < 0 ? 0 : cell.row - border_y); j <
-                    (cell.row + border_y >= grid.n ? grid.n : cell.row + border_y); ++j) {
-            if (distance(cell, grid.cells[i][j]) < max_distance) {
-                result.push_back(grid.cells[i][j]);
+    if (wall == 0) {
+        for (size_t i = (cell.row - border_y < 0 ? 0 : cell.row - border_y); i <
+                        (cell.row + border_y >= grid.n ? grid.n : cell.row + border_y); ++i) {
+            for (size_t j = (cell.column - border_x < 0 ? 0 : cell.column - border_x); j <
+                            (cell.column + border_x >= grid.n ? grid.n : cell.column + border_x); ++j) {
+                if (distance(cell, grid.cells[i][j]) < max_distance) {
+                    result.push_back(grid.cells[i][j]);
+                }
+            }
+        }
+    } else if (wall == 1) {
+        for (int i = cell.row - border_y; i < cell.row + border_y; ++i) {
+            for (int j = cell.column - border_x; j < cell.column + border_x; ++j) {
+                int row, col;
+            
+                if (cell.column - border_x < 0) {
+                    col = -j;
+                } else if (cell.column + border_x >= grid.n) {
+                    col = grid.n - 1 - i;
+                } else {
+                    col = j;
+                }
+
+                if (cell.row - border_y < 0) {
+                    row = -i;
+                } else if (cell.row + border_y >= grid.n) {
+                    row = grid.n - 1 - j;
+                } else {
+                    row = i;
+                }
+
+                if (col >= 0 && col < grid.n && row >= 0 && row < grid.n &&
+                    distance(cell, grid.cells[row][col]) < max_distance) {
+                    result.push_back(grid.cells[row][col]);
+                }
+            }
+        }
+    } else {    // FIXME: Population drops suddenly
+        for (int i = cell.row - border_y; i < cell.row + border_y; ++i) {
+            for (int j = cell.column - border_x; j < cell.column + border_x; ++j) {
+                int row, col;
+
+                if (cell.column - border_x < 0) {
+                    col = 0;
+                } else if (cell.column + border_x >= grid.n) {
+                    col = grid.n - 1;
+                } else {
+                    col = j;
+                }
+
+                if (cell.row - border_y < 0) {
+                    row = 0;
+                } else if (cell.row + border_y >= grid.n) {
+                    row = grid.n - 1;
+                } else {
+                    row = i;
+                }
+
+                if (distance(cell, grid.cells[row][col]) < max_distance) {
+                    result.push_back(grid.cells[row][col]);
+                }
             }
         }
     }
@@ -124,22 +181,26 @@ void iteration(Grid &grid) {
 
 int main(int argc, char **argv) {
 
-    std::string usage_string = "Usage: " + std::string(argv[0]) + " [size] [discretization] [iterations] [initial population]";
-    if (argc != 5) {
+    std::string usage_string = "Usage: " + std::string(argv[0]) + " [size] [discretization] [iterations] [initial population] [wall type]";
+    if (argc != 6) {
         std::cerr << "Wrong number of arguments\n" << usage_string << std::endl;
         return 1;
     }
+
     char *endptr;
+
     long int size = strtol(argv[1], &endptr, 10);
     if (!*argv[1] || *endptr) {
         std::cerr << "Wrong size: " << argv[1] << std::endl << usage_string << std::endl;
         return 1;
     }
+
     long int discretization = strtol(argv[2], &endptr, 10);
     if (!*argv[2] || *endptr) {
         std::cerr << "Wrong discretization: " << argv[2] << std::endl << usage_string << std::endl;
         return 1;
     }
+
     long int iterations = strtol(argv[3], &endptr, 10);
     if (!*argv[3] || *endptr) {
         std::cerr << "Wrong number of iterations: " << argv[3] << std::endl << usage_string << std::endl;
@@ -151,12 +212,52 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    srand(time(NULL));
+    wall = strtol(argv[5], &endptr, 10);
+    if (!*argv[5] || *endptr) {
+        std::cerr << "Wrong wall type:" << argv[5] << "\n0 - killing, 1 - reflecting, 2 - reflecting to wall"<< std::endl << usage_string << std::endl;
+        return 1;
+    }
+
+    std::ofstream population, init_density, density;
+    population.open("population.csv");
+
+    srand(42);
     Grid grid(size, size, discretization, init_population);
+
+    init_density.open("init_density.csv");
+    for (auto row : grid.cells) {
+        for (int i = 0; i < row.size(); ++i) {
+            init_density << row[i].population;
+            if (i < row.size() - 1) {
+                init_density << ',';
+            }
+        }
+        init_density << std::endl;
+    }
+    init_density.close();
+
     std::cout << 0 << "\t" << grid.total_population << std::endl;
     for (long int i = 1; i <= iterations; ++i) {
         iteration(grid);
         std::cout << i << "\t" << grid.total_population << std::endl;
+        population << grid.total_population;
+        if (i != iterations) {
+            population << ',';
+        }
     }
+    population.close();
+
+    density.open("density.csv");
+    for (auto row : grid.cells) {
+        for (int i = 0; i < row.size(); ++i) {
+            density << row[i].population;
+            if (i < row.size() - 1) {
+                density << ',';
+            }
+        }
+        density << std::endl;
+    }
+    density.close();
+
     return 0;
 }
