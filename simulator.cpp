@@ -77,9 +77,9 @@ std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) 
     int border_y = ceil(max_distance * grid.n / grid.height);  // Max distance from cell by y
     if (wall == 0) {
         for (size_t i = (cell.row - border_y < 0 ? 0 : cell.row - border_y); i <
-                        (cell.row + border_y >= grid.n ? grid.n : cell.row + border_y); ++i) {
+                        (cell.row + border_y >= (int)grid.n ? grid.n : cell.row + border_y); ++i) {
             for (size_t j = (cell.column - border_x < 0 ? 0 : cell.column - border_x); j <
-                            (cell.column + border_x >= grid.n ? grid.n : cell.column + border_x); ++j) {
+                            (cell.column + border_x >= (int)grid.n ? grid.n : cell.column + border_x); ++j) {
                 if (distance(cell, grid.cells[i][j]) < max_distance) {
                     result.push_back(grid.cells[i][j]);
                 }
@@ -92,43 +92,43 @@ std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) 
             
                 if (cell.column - border_x < 0) {
                     col = -j;
-                } else if (cell.column + border_x >= grid.n) {
-                    col = grid.n - 1 - i;
+                } else if (cell.column + border_x >= (int)grid.n) {
+                    col = 2 * grid.n - 2 - j;
                 } else {
                     col = j;
                 }
 
                 if (cell.row - border_y < 0) {
                     row = -i;
-                } else if (cell.row + border_y >= grid.n) {
-                    row = grid.n - 1 - j;
+                } else if (cell.row + border_y >= (int)grid.n) {
+                    row = 2 * grid.n - 2 - i    ;
                 } else {
                     row = i;
                 }
 
-                if (col >= 0 && col < grid.n && row >= 0 && row < grid.n &&
+                if (col >= 0 && col < (int)grid.n && row >= 0 && row < (int)grid.n &&
                     distance(cell, grid.cells[row][col]) < max_distance) {
                     result.push_back(grid.cells[row][col]);
                 }
             }
         }
-    } else {    // FIXME: Population drops suddenly
+    } else { 
         for (int i = cell.row - border_y; i < cell.row + border_y; ++i) {
             for (int j = cell.column - border_x; j < cell.column + border_x; ++j) {
                 int row, col;
 
                 if (cell.column - border_x < 0) {
                     col = 0;
-                } else if (cell.column + border_x >= grid.n) {
-                    col = grid.n - 1;
+                } else if (cell.column + border_x >= (int)grid.n) {
+                    col = (int)grid.n - 1;
                 } else {
                     col = j;
                 }
 
                 if (cell.row - border_y < 0) {
                     row = 0;
-                } else if (cell.row + border_y >= grid.n) {
-                    row = grid.n - 1;
+                } else if (cell.row + border_y >= (int)grid.n) {
+                    row = (int)grid.n - 1;
                 } else {
                     row = i;
                 }
@@ -167,7 +167,7 @@ void iteration(Grid &grid) {
             }
 
             int died = 0;
-            for (size_t k = 0; k != grid.cells[i][j].population; ++k) {
+            for (int k = 0; k != grid.cells[i][j].population; ++k) {
                 if ((double)rand() / RAND_MAX < death_rate) {
                     ++died;
                 }
@@ -226,9 +226,9 @@ int main(int argc, char **argv) {
 
     init_density.open("init_density.csv");
     for (auto row : grid.cells) {
-        for (int i = 0; i < row.size(); ++i) {
+        for (int i = 0; i < (int)row.size(); ++i) {
             init_density << row[i].population;
-            if (i < row.size() - 1) {
+            if (i < (int)row.size() - 1) {
                 init_density << ',';
             }
         }
@@ -244,14 +244,16 @@ int main(int argc, char **argv) {
         if (i != iterations) {
             population << ',';
         }
+        flush(std::cout);
+        flush(population);
     }
     population.close();
 
     density.open("density.csv");
     for (auto row : grid.cells) {
-        for (int i = 0; i < row.size(); ++i) {
+        for (int i = 0; i < (int)row.size(); ++i) {
             density << row[i].population;
-            if (i < row.size() - 1) {
+            if (i < (int)row.size() - 1) {
                 density << ',';
             }
         }
