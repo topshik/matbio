@@ -35,8 +35,8 @@ public:
             init_cell.population = 1;
             init_cell.row = rand() % n;
             init_cell.column = rand() % n;
-            init_cell.x = (width / n) * ((double)init_cell.column + 0.5);
-            init_cell.y = (height / n) * ((double)init_cell.row + 0.5);
+            init_cell.x = ((double)width / n) * ((double)init_cell.column + 0.5);
+            init_cell.y = ((double)height / n) * ((double)init_cell.row + 0.5);
             cells[init_cell.row][init_cell.column] = init_cell;
         }
     };
@@ -218,8 +218,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    std::ofstream population, init_density, density;
-    population.open("population.csv");
+    std::ofstream population, moment1, init_density, density;
 
     srand(42);
     Grid grid(size, size, discretization, init_population);
@@ -236,18 +235,38 @@ int main(int argc, char **argv) {
     }
     init_density.close();
 
+    population.open("population.csv");
+    moment1.open("moment1.csv");
     std::cout << 0 << "\t" << grid.total_population << std::endl;
     for (long int i = 1; i <= iterations; ++i) {
         iteration(grid);
         std::cout << i << "\t" << grid.total_population << std::endl;
         population << grid.total_population;
+        moment1 << (double)grid.total_population / (grid.width * grid.height);
         if (i != iterations) {
             population << ',';
+            moment1 << ',';
+        }
+        if (i % 10 == 1) {
+            density.open("density" + std::to_string(i) + ".csv");
+            for (auto row : grid.cells) {
+                for (int j = 0; j < (int)row.size(); ++j) {
+                    density << row[j].population;
+                    if (j < (int)row.size() - 1) {
+                        density << ',';
+                    }
+                }
+                density << std::endl;
+            }
+            density.close();
         }
         flush(std::cout);
         flush(population);
+        flush(moment1);
+        flush(density);
     }
     population.close();
+    moment1.close();
 
     density.open("density.csv");
     for (auto row : grid.cells) {
