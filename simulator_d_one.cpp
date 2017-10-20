@@ -44,6 +44,15 @@ public:
     void set_indices(unsigned long long Column) {
         column = Column;
     }
+
+    void print(std::ostream &out) const {
+        out << std::setw(3) << population << std::endl;
+    }
+
+    friend std::ostream &operator<<(std::ostream &out, const Cell &cell) {
+        cell.print(out);
+        return out;
+    }
 };
 
 class Grid {
@@ -65,9 +74,23 @@ public:
             cells[init_cell.get_indices()] = init_cell;
         }
     }
+
+    std::vector<Cell> get_cells() const {
+        return cells;
+    }
+
+    Cell & operator[] (int x) {  // setter
+        return cells[x];
+    }
+
+    Cell operator[] (int x) const {  // getter
+        return cells[x];
+    }
 };
 
 int main(int argc, char ** argv) {
-    Cell a(2, 5);
-    std::cout << a.get_coordinates();
+    srand(time(NULL));
+    Grid grid(10, 10, 1);
+    for (auto cell : grid.get_cells())
+        std::cout << cell;
 }
