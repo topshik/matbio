@@ -21,27 +21,27 @@ public:
     Cell(int Population, double X)
     : population(Population), x(X) {};
 
-    double get_coordinates() const {
-        return x;
-    }
-
     unsigned long long get_population() const {
         return population;
     }
 
-    unsigned long long get_indices() const {
-        return column;
+    double get_coordinates() const {  // FIXME: for many dimensions need a vector
+        return x;
     }
 
-    void set_coordinates(double X) {
-        x = X;
+    unsigned long long get_indices() const {  // FIXME: for many dimensions need a vector
+        return column;
     }
 
     void set_population(unsigned long long Population) {
         population = Population;
     }
 
-    void set_indices(unsigned long long Column) {
+    void set_coordinates(double X) {  // FIXME: for many dimensions need a vector
+        x = X;
+    }
+
+    void set_indices(unsigned long long Column) {  // FIXME: for many dimensions need a vector
         column = Column;
     }
 
@@ -57,17 +57,17 @@ public:
 
 class Grid {
 private:
-    unsigned long long total_population, discretizatiion;
+    unsigned long long population, discretizatiion;
     double width;
     std::vector<Cell> cells;
 public:
     Grid() {};
 
     Grid(unsigned long long Init_population, unsigned long long Discretizatiion, double Width)
-    :total_population(Init_population), discretizatiion(Discretizatiion), width(Width) {
+    :population(Init_population), discretizatiion(Discretizatiion), width(Width) {
         cells = std::vector<Cell>(discretizatiion);
         Cell init_cell;
-        for (unsigned long long i = 0; i != total_population; ++i) {
+        for (unsigned long long i = 0; i != population; ++i) {
             init_cell.set_population(1);
             init_cell.set_indices(rand() % discretizatiion);             // FIXME: indices, columns, rows??
             init_cell.set_coordinates((width / discretizatiion) * ((double)init_cell.get_indices() + 0.5));
@@ -75,8 +75,20 @@ public:
         }
     }
 
-    std::vector<Cell> get_cells() const {
-        return cells;
+    unsigned long long get_population() const {
+        return population;
+    }
+
+    unsigned long long get_discretization() const {  // FIXME: for many dimensions need a vector
+        return discretizatiion;
+    }
+
+    double get_size() const {  // FIXME: for many dimensions need a vector
+        return width;
+    }
+
+    std::vector<Cell> get_cells() const {  // FIXME: for many dimensions need a vector
+        return cells;  // not sure about const to edit with cell.set_value()
     }
 
     Cell & operator[] (int x) {  // setter
