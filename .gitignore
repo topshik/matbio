@@ -4,3 +4,5 @@ sim
 *~
 test.*
 simulator[1-9].exe
+*.csv
+d_one
