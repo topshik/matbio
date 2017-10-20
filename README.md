@@ -3,7 +3,7 @@
 ### Implementation
 Simulations are written using C++11. Data processing is implemented on Python 3.
 
-#### Описание алгоритма
+#### Algorithm description
 The algorithm is based on idea of coordinate discretization. There might be arbitrary number of individuals in every cell of the grid.
 One step of the algorithm consists of computing birth probability matrix of new individuals and possible death of each one. Birth and death kernels are considered to be Gaussian.
 
