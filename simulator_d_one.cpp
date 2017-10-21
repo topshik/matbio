@@ -9,11 +9,13 @@
 
 const double birth_rate = 0.4;
 const double death_rate = 0.2;
+const double birth_distance = 0.5;
+const double death_distance = 0.5;
 int wall = 0;
 
 class Cell {
 private:
-    unsigned long long  population, column;
+    long long  population, column;
     double x;
 public:
     Cell() {};
@@ -21,7 +23,7 @@ public:
     Cell(int Population, double X)
     : population(Population), x(X) {};
 
-    unsigned long long get_population() const {
+    long long get_population() const {
         return population;
     }
 
@@ -29,11 +31,11 @@ public:
         return x;
     }
 
-    unsigned long long get_indices() const {  // FIXME: for many dimensions need a vector
+    long long get_indices() const {  // FIXME: for many dimensions need a vector
         return column;
     }
 
-    void set_population(unsigned long long Population) {
+    void set_population(long long Population) {
         population = Population;
     }
 
@@ -41,7 +43,7 @@ public:
         x = X;
     }
 
-    void set_indices(unsigned long long Column) {  // FIXME: for many dimensions need a vector
+    void set_indices(long long Column) {  // FIXME: for many dimensions need a vector
         column = Column;
     }
 
@@ -57,30 +59,34 @@ public:
 
 class Grid {
 private:
-    unsigned long long population, discretization;
+    long long population, discretization;
     double width;  // FIXME: for many dimensions need a vector
-    std::vector<Cell> cells;
     double cell_width;  // FIXME: for many dimensions need a vector
+    std::vector<Cell> cells;
+
 public:
     Grid() {};
 
-    Grid(unsigned long long Init_population, unsigned long long Discretization, double Width)
+    Grid(long long Init_population, long long Discretization, double Width)
     :population(Init_population), discretization(Discretization), width(Width) {
+        cell_width = width / (double)discretization;
         cells = std::vector<Cell>(discretization);
-        Cell init_cell;
-        for (unsigned long long i = 0; i != population; ++i) {
-            init_cell.set_population(1);
-            init_cell.set_indices(rand() % discretization);             // FIXME: indices, columns, rows??
-            init_cell.set_coordinates((width / discretization) * ((double)init_cell.get_indices() + 0.5));
-            cells[init_cell.get_indices()] = init_cell;
+        for (long long i = 0; i != cells.size(); ++i) {
+            cells[i].set_coordinates(width / discretization * i);
+            cells[i].set_indices(i);
+            cells[i].set_population(0);
+        }
+        for (long long i = 0; i != population; ++i) {
+            long long index = (((long long)rand() << 32) + rand()) % discretization;  // Слабоумие и слабоумие
+            cells[index].set_population(cells[index].get_population() + 1);
         }
     }
 
-    unsigned long long get_population() const {
+    long long get_population() const {
         return population;
     }
 
-    unsigned long long get_discretization() const {  // FIXME: for many dimensions need a vector
+    long long get_discretization() const {  // FIXME: for many dimensions need a vector
         return discretization;
     }
 
@@ -109,23 +115,24 @@ double distance(const Cell &from, const Cell &to) {  // FIXME: for many dimensio
     return std::sqrt(std::pow((from.get_coordinates() - to.get_coordinates()), 2));
 }
 
-std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) {
+std::vector<Cell> neighbour_influence(const Grid &grid, const Cell &cell, double max_distance = birth_distance) {
     // max_distance ? need func for arbitrary Gaussian distribution expectation and variance
-    double max_distance = 0.5;
-    unsigned long long border_x = ceil(max_distance / grid.get_cell_size());  // check for types conversion
+    long long border_x = ceil(max_distance / grid.get_cell_size());  // check for types conversion
     std::vector<Cell> result;
     if (wall == 0) {
-        for (unsigned long long i = (cell.get_indices() - border_x < 0 ? 0 : cell.get_indices() - border_x);
-                                i != (cell.get_indices() + border_x >= grid.get_discretization() ? grid.get_discretization() : cell.get_indices() + border_x);
-                                ++i) {
+        long long left_border  = ((long long)cell.get_indices() - border_x <= 0 ? 0 : cell.get_indices() - border_x);
+        long long right_border = ((long long)cell.get_indices() + border_x >= grid.get_discretization() ? grid.get_discretization() : cell.get_indices() + border_x);
+        for (long long i = left_border; i != right_border; ++i) {
             result.push_back(grid.get_cells()[i]);
         }
     }
+    return result;
 }
 
 int main(int argc, char ** argv) {
     srand(time(NULL));
     Grid grid(10, 10, 1);
-    for (auto cell : neighbour_birth_influence(grid, grid[0]))
+    for (auto cell : neighbour_birth_influence(grid, grid[0])) {
         std::cout << cell;
+    }
 }

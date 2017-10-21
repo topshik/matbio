@@ -8,7 +8,7 @@
 #include <vector>
 
 const double birth_rate = 0.4;
-const double death_rate = 0.2;
+const double death_rate = 0;
 int wall;
 
 class Cell {
@@ -71,7 +71,7 @@ double distance(const Cell &from, const Cell &to) {
 
 /* Analyzing which cells are appropriate to be counted */
 double max_distance = 3;
-std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) {
+std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) {  // 
     std::vector<Cell> result;
     int border_x = ceil(max_distance * grid.n / grid.width);  // Max distance from cell by x
     int border_y = ceil(max_distance * grid.n / grid.height);  // Max distance from cell by y
@@ -150,7 +150,7 @@ void iteration(Grid &grid) {
             if (cell.population > 0) {
                 std::vector<Cell> neighbours = neighbour_birth_influence(grid, cell);
                 for (auto neighbour : neighbours) {
-                    double cell_influence = pow(std::exp(-std::pow(distance(neighbour, cell), 2) / 2), cell.population);
+                    double cell_influence = pow(std::exp(-std::pow(distance(neighbour, cell), 2) / 2), cell.population); // TODO: No pow
                     double birth_prob = birth_rate * cell_influence;
                     nobirth_matrix[neighbour.row][neighbour.column] *= (1 - birth_prob);
                 }
