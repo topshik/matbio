@@ -9,8 +9,8 @@
 
 const double birth_rate = 0.4;
 const double death_rate = 0.2;
-const double birth_distance = 0.5;
-const double death_distance = 0.5;
+const double birth_variance = 0.1;
+const double death_variance = 0.1;
 int wall = 0;
 
 class Cell {
@@ -63,7 +63,6 @@ private:
     double width;  // FIXME: for many dimensions need a vector
     double cell_width;  // FIXME: for many dimensions need a vector
     std::vector<Cell> cells;
-
 public:
     Grid() {};
 
@@ -99,7 +98,7 @@ public:
     }
 
     std::vector<Cell> get_cells() const {  // FIXME: for many dimensions need a vector
-        return cells;  // not sure about const to edit with cell.set_value()
+        return cells;
     }
 
     Cell & operator[] (int x) {  // setter
@@ -115,11 +114,11 @@ double distance(const Cell &from, const Cell &to) {  // FIXME: for many dimensio
     return std::sqrt(std::pow((from.get_coordinates() - to.get_coordinates()), 2));
 }
 
-std::vector<Cell> neighbour_influence(const Grid &grid, const Cell &cell, double max_distance = birth_distance) {
-    // max_distance ? need func for arbitrary Gaussian distribution expectation and variance
-    long long border_x = ceil(max_distance / grid.get_cell_size());  // check for types conversion
+std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) {
+    double max_distance = 3 * birth_variance;  // 3 sigma rule
+    long long border_x = ceil(max_distance / grid.get_cell_size());
     std::vector<Cell> result;
-    if (wall == 0) {
+    if (wall == 0) {  // killing border
         long long left_border  = ((long long)cell.get_indices() - border_x <= 0 ? 0 : cell.get_indices() - border_x);
         long long right_border = ((long long)cell.get_indices() + border_x >= grid.get_discretization() ? grid.get_discretization() : cell.get_indices() + border_x);
         for (long long i = left_border; i != right_border; ++i) {
