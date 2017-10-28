@@ -114,6 +114,7 @@ double distance(const Cell &from, const Cell &to) {  // FIXME: for many dimensio
     return std::sqrt(std::pow((from.get_coordinates() - to.get_coordinates()), 2));
 }
 
+// counting birth and death kernels (currently Gaussian)
 double kernel(const Cell &cell1, const Cell &cell2, int type) {  // 0 - birth; 1 - death; FIXME: other kernels, many dim case
     if (!type) {
         return birth_rate / (sqrt(2 * M_PI * pow(birth_variance, 2))) * std::exp(-std::pow(distance(cell1, cell2), 2) / (2 * birth_variance));
@@ -122,6 +123,7 @@ double kernel(const Cell &cell1, const Cell &cell2, int type) {  // 0 - birth; 1
     }
 }
 
+// analysing which cells are approproate to be counted
 std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell, int type) {  // 0 - birth; 1 - death
     double max_distance = 3 * birth_variance;  // 3 sigma rule
     if (type) max_distance = 3 * death_variance;  // 3 sigma rule
@@ -137,6 +139,7 @@ std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell, 
     return result;
 }
 
+// life cycle of the grid
 void iteration(Grid & grid) {
     std::vector<double> nobirth_matrix(grid.get_discretization(), 1);
     std::vector<Cell> neighbours;
@@ -144,8 +147,8 @@ void iteration(Grid & grid) {
         if (cell.get_population()) {
             neighbours = neighbour_birth_influence(grid, cell, 0);
             for (auto neighbour : neighbours) {
-                    double birth_prob = std::pow(kernel(cell, neighbour, 0) * grid.get_cell_size(), cell.get_population());  // * cell_size instead of integration
-                    nobirth_matrix[neighbour.get_indices()] *= (1 - birth_prob);
+                double birth_prob = std::pow(kernel(cell, neighbour, 0) * grid.get_cell_size(), cell.get_population());  // * cell_size instead of integration
+                nobirth_matrix[neighbour.get_indices()] *= (1 - birth_prob);
             }
         }
     }
