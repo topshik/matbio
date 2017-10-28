@@ -188,10 +188,10 @@ void iteration(Grid & grid, std::vector<std::vector<long long>> &neighbours_birt
 
 int main(int argc, char ** argv) {
     srand(time(NULL));
-    Grid grid(10, 10, 1);
+    Grid grid(1, 10, 1);
     std::vector<std::vector<long long>> neighbours_birth = create_neighbours_vector(grid, 0);
     std::vector<std::vector<long long>> neighbours_death = create_neighbours_vector(grid, 1);
-    for (int i = 0; i != 10000; ++i) {
+    for (int i = 0; i != 300; ++i) {
         std::cout << i << " " << grid.get_population();
         for (int j = 0; j < grid.get_discretization(); ++j) {
             std::cout << " " << grid[j].get_population();
