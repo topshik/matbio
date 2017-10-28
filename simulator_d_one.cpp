@@ -9,8 +9,8 @@
 
 const double birth_rate = 0.4;
 const double death_rate = 0.2;
-const double birth_variance = 0.1;
-const double death_variance = 0.1;
+double birth_variance = 0.1;
+double death_variance = 0.1;
 int wall = 0;
 
 class Cell {
@@ -114,8 +114,17 @@ double distance(const Cell &from, const Cell &to) {  // FIXME: for many dimensio
     return std::sqrt(std::pow((from.get_coordinates() - to.get_coordinates()), 2));
 }
 
-std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) {
+double kernel(const Cell &cell1, const Cell &cell2, int type) {  // 0 - birth; 1 - death; FIXME: other kernels, many dim case
+    if (!type) {
+        return birth_rate / (sqrt(2 * M_PI * pow(birth_variance, 2))) * std::exp(-std::pow(distance(cell1, cell2), 2) / (2 * birth_variance));
+    } else {
+        return death_rate / (sqrt(2 * M_PI * pow(death_variance, 2))) * std::exp(-std::pow(distance(cell1, cell2), 2) / (2 * death_variance));
+    }
+}
+
+std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell, int type) {  // 0 - birth; 1 - death
     double max_distance = 3 * birth_variance;  // 3 sigma rule
+    if (type) max_distance = 3 * death_variance;  // 3 sigma rule
     long long border_x = ceil(max_distance / grid.get_cell_size());
     std::vector<Cell> result;
     if (wall == 0) {  // killing border
@@ -128,10 +137,24 @@ std::vector<Cell> neighbour_birth_influence(const Grid &grid, const Cell &cell) 
     return result;
 }
 
+void iteration(Grid & grid) {
+    std::vector<double> nobirth_matrix(grid.get_discretization(), 1);
+    std::vector<Cell> neighbours;
+    for (auto cell : grid.get_cells()) {
+        if (cell.get_population()) {
+            neighbours = neighbour_birth_influence(grid, cell, 0);
+            for (auto neighbour : neighbours) {
+                    double birth_prob = std::pow(kernel(cell, neighbour, 0) * grid.get_cell_size(), cell.get_population());  // * cell_size instead of integration
+                    nobirth_matrix[neighbour.get_indices()] *= (1 - birth_prob);
+            }
+        }
+    }
+}
+
 int main(int argc, char ** argv) {
     srand(time(NULL));
     Grid grid(10, 10, 1);
-    for (auto cell : neighbour_birth_influence(grid, grid[0])) {
-        std::cout << cell;
+    for (int i = 0; i != 100; ++i) {
+        iteration(grid);
     }
 }
