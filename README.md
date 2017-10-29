@@ -1,6 +1,6 @@
 # Computer simulation of Ulf Dieckmann's model of stationary biological community.
 
-### To compile poisson process simulator, download boost from http://www.boost.org/ , unarchive it and add boost folder to compiler's include directories
+### To compile poisson process simulator, download boost from http://www.boost.org/ , unarchive it and add boost folder to compiler's include directories.
 
 ### Implementation
 Simulations are written using C++11. Data processing is implemented on Python 3.
