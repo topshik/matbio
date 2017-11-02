@@ -1,6 +1,6 @@
 # Computer simulation of Ulf Dieckmann's model of stationary biological community.
 
-#### Algorithm description
+### Algorithm description
 Simulations are written using C++11. Data processing is implemented on Python 3.
 
 There are two versions of simulations.
@@ -20,11 +20,6 @@ To run the second implementation (one and dimensions cases are in one file) firs
 ```
 g++ sim_poison.cpp -o sim -std=c++11
 ```
-
-#### Algorithm description
-Simulations are written using C++11. Data processing is implemented on Python 3.
-The algorithm is based on idea of coordinate discretization. There might be arbitrary number of individuals in every cell of the grid.
-One step of the algorithm consists of computing birth probability matrix of new individuals and possible death of each one. Birth and death kernels are considered to be Gaussian.
 
 ### Unimplemented
  * Arbitrary birth and death kernels option
