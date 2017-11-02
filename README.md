@@ -16,7 +16,7 @@ g++ sim_one_dim.cpp -o sim -std=c++11
 ```
 First implementation for two dimentions case currently doesn't work correctly at the moment (sim_two_dim.cpp).
 
-To run the second implementation (one and dimensions cases are in one file) firstly download [Boost](http://www.boost.org), unarchive it and add Boost folder to compiler's include directories. The run
+To run the second implementation (one and dimensions cases are in one file) firstly download [Boost](http://www.boost.org), unarchive it and add Boost folder to compiler's include directories. Then run
 ```
 g++ sim_poison.cpp -o sim -std=c++11
 ```
