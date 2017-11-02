@@ -6,3 +6,6 @@ test.*
 simulator[1-9].exe
 *.csv
 d_one
+.ipynb_checkpoints
+d_one.dSYM
+simulator.dSYM
