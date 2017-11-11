@@ -145,7 +145,7 @@ std::vector<long long> neighbour_birth_influence(const Grid &grid, const Cell &c
 
 std::vector<std::vector<long long>> create_neighbours_vector(const Grid &grid, int type) {
     std::vector<std::vector<long long>> result(grid.get_discretization());
-    for (long long i = 0; i < grid.get_discretization(); ++i) {
+    for (long long i = 0; i != grid.get_discretization(); ++i) {
         result[i] = neighbour_birth_influence(grid, grid[i], type);
     }
     return result;
@@ -156,30 +156,30 @@ void iteration(Grid & grid, std::vector<std::vector<long long>> &neighbours_birt
     std::vector<double> nobirth_matrix(grid.get_discretization(), 1);
     std::vector<double> nodeath_matrix(grid.get_discretization(), 1);
     std::vector<long long> cur_neighbours;
-    for (long long i = 0; i < grid.get_discretization(); ++i) {
+    for (long long i = 0; i != grid.get_discretization(); ++i) {
         if (grid[i].get_population()) {
             cur_neighbours = neighbours_birth[i];
             for (int j : cur_neighbours) {
-                double birth_prob = std::pow(kernel(grid[i], grid[j], 0) * grid.get_cell_size(), grid[i].get_population());  // * cell_size instead of integration
-                nobirth_matrix[grid[j].get_indices()] *= (1 - birth_prob);
+                double nobirth_prob = std::pow((1 - kernel(grid[i], grid[j], 0) * grid.get_cell_size()), grid[i].get_population());  // * cell_size instead of integration
+                nobirth_matrix[grid[i].get_indices()] *= nobirth_prob;
             }
         }
     }
-    for (long long i = 0; i < grid.get_discretization(); ++i) {
+    for (long long i = 0; i != grid.get_discretization(); ++i) {
         if (grid[i].get_population()) {
             cur_neighbours = neighbours_death[i];
             for (int j : cur_neighbours) {
-                double death_prob = std::pow(kernel(grid[i], grid[j], 1) * grid.get_cell_size(), grid[i].get_population());  // * cell_size instead of integration
-                nodeath_matrix[grid[j].get_indices()] *= (1 - death_prob);
+                double nodeath_prob = std::pow((1 - kernel(grid[i], grid[j], 1) * grid.get_cell_size()), grid[i].get_population());  // * cell_size instead of integration
+                nodeath_matrix[grid[j].get_indices()] *= nodeath_prob;
             }
         }
     }
-    for (long long i = 0; i < grid.get_discretization(); ++i) {
-        if (grid[i].get_population() && (float)rand()/RAND_MAX < nodeath_matrix[i]) {
+    for (long long i = 0; i != grid.get_discretization(); ++i) {
+        if (grid[i].get_population() && (float)rand() / RAND_MAX < nodeath_matrix[i]) {
             grid[i].set_population(grid[i].get_population() - 1);
             grid.set_population(grid.get_population() - 1);
         }
-        if ((float)rand()/RAND_MAX < nobirth_matrix[i]) {
+        if ((float)rand() / RAND_MAX < nobirth_matrix[i]) {
             grid[i].set_population(grid[i].get_population() + 1);
             grid.set_population(grid.get_population() + 1);
         }
@@ -188,14 +188,14 @@ void iteration(Grid & grid, std::vector<std::vector<long long>> &neighbours_birt
 
 int main(int argc, char ** argv) {
     srand(time(NULL));
-    Grid grid(1, 10, 1);
+    Grid grid(15000, 20000, 1);
     std::vector<std::vector<long long>> neighbours_birth = create_neighbours_vector(grid, 0);
     std::vector<std::vector<long long>> neighbours_death = create_neighbours_vector(grid, 1);
     for (int i = 0; i != 300; ++i) {
         std::cout << i << " " << grid.get_population();
-        for (int j = 0; j < grid.get_discretization(); ++j) {
-            std::cout << " " << grid[j].get_population();
-        }
+        // for (int j = 0; j < grid.get_discretization(); ++j) {
+        //     std::cout << " " << grid[j].get_population();
+        // }
         std::cout << std::endl;
         iteration(grid, neighbours_birth, neighbours_death);
     }
