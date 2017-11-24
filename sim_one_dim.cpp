@@ -15,7 +15,7 @@ int wall = 0;
 
 class Cell {
 private:
-    long long  population, column;
+    long  population, column;
     double x;
 public:
     Cell() {};
@@ -23,7 +23,7 @@ public:
     Cell(int Population, double X)
     : population(Population), x(X) {};
 
-    long long get_population() const {
+    long get_population() const {
         return population;
     }
 
@@ -31,11 +31,11 @@ public:
         return x;
     }
 
-    long long get_indices() const {  // FIXME: for many dimensions need a vector
+    long get_indices() const {  // FIXME: for many dimensions need a vector
         return column;
     }
 
-    void set_population(long long Population) {
+    void set_population(long Population) {
         population = Population;
     }
 
@@ -43,7 +43,7 @@ public:
         x = X;
     }
 
-    void set_indices(long long Column) {  // FIXME: for many dimensions need a vector
+    void set_indices(long Column) {  // FIXME: for many dimensions need a vector
         column = Column;
     }
 
@@ -59,37 +59,37 @@ public:
 
 class Grid {
 private:
-    long long population, discretization;
+    long population, discretization;
     double width;  // FIXME: for many dimensions need a vector
     double cell_width;  // FIXME: for many dimensions need a vector
     std::vector<Cell> cells;
 public:
     Grid() {};
 
-    Grid(long long Init_population, long long Discretization, double Width)
+    Grid(long Init_population, long Discretization, double Width)
     :population(Init_population), discretization(Discretization), width(Width) {
         cell_width = width / (double)discretization;
         cells = std::vector<Cell>(discretization);
-        for (long long i = 0; i != cells.size(); ++i) {
+        for (long i = 0; i != cells.size(); ++i) {
             cells[i].set_coordinates(width / discretization * i);
             cells[i].set_indices(i);
             cells[i].set_population(0);
         }
-        for (long long i = 0; i != population; ++i) {
-            long long index = (((long long)rand() << 32) + rand()) % discretization;  // Слабоумие и слабоумие
+        for (long i = 0; i != population; ++i) {
+            long index = (((long)rand() << 32) + rand()) % discretization;  // Слабоумие и слабоумие
             cells[index].set_population(cells[index].get_population() + 1);
         }
     }
 
-    long long get_population() const {
+    long get_population() const {
         return population;
     }
 
-    void set_population(long long new_population) {
+    void set_population(long new_population) {
         population = new_population;
     }
 
-    long long get_discretization() const {  // FIXME: for many dimensions need a vector
+    long get_discretization() const {  // FIXME: for many dimensions need a vector
         return discretization;
     }
 
@@ -128,35 +128,35 @@ double kernel(const Cell &cell1, const Cell &cell2, int type) {  // 0 - birth; 1
 }
 
 // analysing which cells are approproate to be counted
-std::vector<long long> neighbour_birth_influence(const Grid &grid, const Cell &cell, int type) {  // 0 - birth; 1 - death
+std::vector<long> neighbour_birth_influence(const Grid &grid, const Cell &cell, int type) {  // 0 - birth; 1 - death
     double max_distance = 3 * birth_variance;  // 3 sigma rule
     if (type) max_distance = 3 * death_variance;  // 3 sigma rule
-    long long border_x = ceil(max_distance / grid.get_cell_size());
-    std::vector<long long> result;
+    long border_x = ceil(max_distance / grid.get_cell_size());
+    std::vector<long> result;
     if (wall == 0) {  // killing border
-        long long left_border  = ((long long)cell.get_indices() - border_x <= 0 ? 0 : cell.get_indices() - border_x);
-        long long right_border = ((long long)cell.get_indices() + border_x >= grid.get_discretization() ? grid.get_discretization() : cell.get_indices() + border_x);
-        for (long long i = left_border; i != right_border; ++i) {
+        long left_border  = ((long)cell.get_indices() - border_x <= 0 ? 0 : cell.get_indices() - border_x);
+        long right_border = ((long)cell.get_indices() + border_x >= grid.get_discretization() ? grid.get_discretization() : cell.get_indices() + border_x);
+        for (long i = left_border; i != right_border; ++i) {
             result.push_back(i);
         }
     }
     return result;
 }
 
-std::vector<std::vector<long long>> create_neighbours_vector(const Grid &grid, int type) {
-    std::vector<std::vector<long long>> result(grid.get_discretization());
-    for (long long i = 0; i != grid.get_discretization(); ++i) {
+std::vector<std::vector<long>> create_neighbours_vector(const Grid &grid, int type) {
+    std::vector<std::vector<long>> result(grid.get_discretization());
+    for (long i = 0; i != grid.get_discretization(); ++i) {
         result[i] = neighbour_birth_influence(grid, grid[i], type);
     }
     return result;
 }
 
 // life cycle of the grid
-void iteration(Grid & grid, std::vector<std::vector<long long>> &neighbours_birth, std::vector<std::vector<long long>> &neighbours_death) {
+void iteration(Grid & grid, std::vector<std::vector<long>> &neighbours_birth, std::vector<std::vector<long>> &neighbours_death) {
     std::vector<double> nobirth_matrix(grid.get_discretization(), 1);
     std::vector<double> nodeath_matrix(grid.get_discretization(), 1);
-    std::vector<long long> cur_neighbours;
-    for (long long i = 0; i != grid.get_discretization(); ++i) {
+    std::vector<long> cur_neighbours;
+    for (long i = 0; i != grid.get_discretization(); ++i) {
         if (grid[i].get_population()) {
             cur_neighbours = neighbours_birth[i];
             for (int j : cur_neighbours) {
@@ -165,7 +165,7 @@ void iteration(Grid & grid, std::vector<std::vector<long long>> &neighbours_birt
             }
         }
     }
-    for (long long i = 0; i != grid.get_discretization(); ++i) {
+    for (long i = 0; i != grid.get_discretization(); ++i) {
         if (grid[i].get_population()) {
             cur_neighbours = neighbours_death[i];
             for (int j : cur_neighbours) {
@@ -174,7 +174,7 @@ void iteration(Grid & grid, std::vector<std::vector<long long>> &neighbours_birt
             }
         }
     }
-    for (long long i = 0; i != grid.get_discretization(); ++i) {
+    for (long i = 0; i != grid.get_discretization(); ++i) {
         if (grid[i].get_population() && (float)rand() / RAND_MAX < nodeath_matrix[i]) {
             grid[i].set_population(grid[i].get_population() - 1);
             grid.set_population(grid.get_population() - 1);
@@ -189,8 +189,8 @@ void iteration(Grid & grid, std::vector<std::vector<long long>> &neighbours_birt
 int main(int argc, char ** argv) {
     srand(time(NULL));
     Grid grid(15000, 20000, 1);
-    std::vector<std::vector<long long>> neighbours_birth = create_neighbours_vector(grid, 0);
-    std::vector<std::vector<long long>> neighbours_death = create_neighbours_vector(grid, 1);
+    std::vector<std::vector<long>> neighbours_birth = create_neighbours_vector(grid, 0);
+    std::vector<std::vector<long>> neighbours_death = create_neighbours_vector(grid, 1);
     for (int i = 0; i != 300; ++i) {
         std::cout << i << " " << grid.get_population();
         // for (int j = 0; j < grid.get_discretization(); ++j) {
