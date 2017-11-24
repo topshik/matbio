@@ -12,6 +12,8 @@ const double death_rate = 0.2;
 double birth_variance = 0.1;
 double death_variance = 0.1;
 int wall = 0;
+std::vector<double> birth_kernel;
+std::vector<double> death_kernel;
 
 class Cell {
 private:
@@ -114,31 +116,37 @@ public:
     }
 };
 
+double pow_int(double x, long p) {
+    double res = x;
+    --p;
+    for (long i = 0; i != p; ++i) {
+        res *= x;
+    }
+    return res;
+}
+
 double distance(const Cell &from, const Cell &to) {  // FIXME: for many dimensions need a vector
-    return std::sqrt(std::pow((from.get_coordinates() - to.get_coordinates()), 2));
+    return std::abs(from.get_coordinates() - to.get_coordinates());
 }
 
 // counting birth and death kernels (currently Gaussian)
-double kernel(const Cell &cell1, const Cell &cell2, int type) {  // 0 - birth; 1 - death; FIXME: other kernels, many dim case
-    if (!type) {
-        return birth_rate / (sqrt(2 * M_PI * pow(birth_variance, 2))) * std::exp(-std::pow(distance(cell1, cell2), 2) / (2 * birth_variance));
+std::vector<double> precompute_kernel(int type, Grid &grid) {
+    std::vector<double> result;
+    long max_distance = ceil(3.0 * birth_variance / grid.get_cell_size());  // 3 sigma rule
+    double variance, rate;
+    if (type == 0) {
+        variance = birth_variance;
+        rate = birth_rate;
+    } else if (type == 1) {
+        variance = death_variance;
+        rate = death_rate;
     } else {
-        return death_rate / (sqrt(2 * M_PI * pow(death_variance, 2))) * std::exp(-std::pow(distance(cell1, cell2), 2) / (2 * death_variance));
+        throw std::invalid_argument( "Invalid type" );
     }
-}
-
-// analysing which cells are approproate to be counted
-std::vector<long> neighbour_birth_influence(const Grid &grid, const Cell &cell, int type) {  // 0 - birth; 1 - death
-    double max_distance = 3 * birth_variance;  // 3 sigma rule
-    if (type) max_distance = 3 * death_variance;  // 3 sigma rule
-    long border_x = ceil(max_distance / grid.get_cell_size());
-    std::vector<long> result;
-    if (wall == 0) {  // killing border
-        long left_border  = ((long)cell.get_indices() - border_x <= 0 ? 0 : cell.get_indices() - border_x);
-        long right_border = ((long)cell.get_indices() + border_x >= grid.get_discretization() ? grid.get_discretization() : cell.get_indices() + border_x);
-        for (long i = left_border; i != right_border; ++i) {
-            result.push_back(i);
-        }
+    for (long i = 0; i <= max_distance; ++i) {
+        result.push_back(
+            rate / (sqrt(2 * M_PI * pow_int(variance, 2))) * std::exp(-pow_int(distance(grid[0], grid[i]), 2) / (2 * variance))
+        );
     }
     return result;
 }
@@ -172,7 +180,7 @@ void iteration(Grid & grid) {
         if (grid[i].get_population()) {
             cur_interval = count_interval_for_cell(i, grid, 0, wall);
             for (long j = cur_interval.first; j != cur_interval.second; ++j) {
-                double nobirth_prob = std::pow((1 - kernel(grid[i], grid[j], 0) * grid.get_cell_size()), grid[i].get_population());  // * cell_size instead of integration
+                double nobirth_prob = pow_int((1 - birth_kernel[std::abs(i - j)] * grid.get_cell_size()), grid[i].get_population());  // * cell_size instead of integration
                 nobirth_matrix[grid[i].get_indices()] *= nobirth_prob;
             }
         }
@@ -181,7 +189,7 @@ void iteration(Grid & grid) {
         if (grid[i].get_population()) {
             cur_interval = count_interval_for_cell(i, grid, 1, wall);
             for (long j = cur_interval.first; j != cur_interval.second; ++j) {
-                double nodeath_prob = std::pow((1 - kernel(grid[i], grid[j], 1) * grid.get_cell_size()), grid[i].get_population());  // * cell_size instead of integration
+                double nodeath_prob = pow_int((1 - death_kernel[std::abs(i - j)] * grid.get_cell_size()), grid[i].get_population());  // * cell_size instead of integration
                 nodeath_matrix[grid[j].get_indices()] *= nodeath_prob;
             }
         }
@@ -234,11 +242,15 @@ int main(int argc, char ** argv) {
 
     wall = strtol(argv[5], &endptr, 10);
     if (!*argv[5] || *endptr) {
-        std::cerr << "Wrong wall type:" << argv[5] << "\n0 - killing, 1 - reflecting, 2 - reflecting to wall"<< std::endl << usage_string << std::endl;
+        std::cerr << "Wrong wall type:" << argv[5] << "\n0 - killing, 1 - periodical"<< std::endl << usage_string << std::endl;
         return 1;
     }
 
     Grid grid(init_population, discretization, size);
+
+    birth_kernel = precompute_kernel(0, grid);
+    death_kernel = precompute_kernel(1, grid);
+
     for (int i = 0; i != iterations; ++i) {
         std::cout << i << " " << grid.get_population();
         // for (int j = 0; j < grid.get_discretization(); ++j) {
