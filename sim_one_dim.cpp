@@ -143,23 +143,35 @@ std::vector<long> neighbour_birth_influence(const Grid &grid, const Cell &cell, 
     return result;
 }
 
-std::vector<std::vector<long>> create_neighbours_vector(const Grid &grid, int type) {
-    std::vector<std::vector<long>> result(grid.get_discretization());
-    for (long i = 0; i != grid.get_discretization(); ++i) {
-        result[i] = neighbour_birth_influence(grid, grid[i], type);
+std::pair<long, long> count_interval_for_cell(long cell, Grid &grid, int type, int wall) {
+    double max_distance;
+    if (type == 0) {
+        max_distance = 3 * birth_variance;  // 3 sigma rule
+    } else if (type == 1) {
+        max_distance = 3 * death_variance;  // 3 sigma rule
+    } else {
+        throw std::invalid_argument( "Invalid type" );
+    }
+    long border_x = ceil(max_distance / grid.get_cell_size());
+    std::pair<long, long> result;
+    if (wall == 0) {
+        result.first = (cell - border_x <= 0 ? 0 : cell - border_x);
+        result.second = (cell + border_x >= grid.get_discretization() ? grid.get_discretization() : cell + border_x);
+    } else {
+        throw std::invalid_argument( "Invalid wall" );
     }
     return result;
 }
 
 // life cycle of the grid
-void iteration(Grid & grid, std::vector<std::vector<long>> &neighbours_birth, std::vector<std::vector<long>> &neighbours_death) {
+void iteration(Grid & grid) {
     std::vector<double> nobirth_matrix(grid.get_discretization(), 1);
     std::vector<double> nodeath_matrix(grid.get_discretization(), 1);
-    std::vector<long> cur_neighbours;
+    std::pair<long, long> cur_interval;
     for (long i = 0; i != grid.get_discretization(); ++i) {
         if (grid[i].get_population()) {
-            cur_neighbours = neighbours_birth[i];
-            for (int j : cur_neighbours) {
+            cur_interval = count_interval_for_cell(i, grid, 0, wall);
+            for (long j = cur_interval.first; j != cur_interval.second; ++j) {
                 double nobirth_prob = std::pow((1 - kernel(grid[i], grid[j], 0) * grid.get_cell_size()), grid[i].get_population());  // * cell_size instead of integration
                 nobirth_matrix[grid[i].get_indices()] *= nobirth_prob;
             }
@@ -167,8 +179,8 @@ void iteration(Grid & grid, std::vector<std::vector<long>> &neighbours_birth, st
     }
     for (long i = 0; i != grid.get_discretization(); ++i) {
         if (grid[i].get_population()) {
-            cur_neighbours = neighbours_death[i];
-            for (int j : cur_neighbours) {
+            cur_interval = count_interval_for_cell(i, grid, 1, wall);
+            for (long j = cur_interval.first; j != cur_interval.second; ++j) {
                 double nodeath_prob = std::pow((1 - kernel(grid[i], grid[j], 1) * grid.get_cell_size()), grid[i].get_population());  // * cell_size instead of integration
                 nodeath_matrix[grid[j].get_indices()] *= nodeath_prob;
             }
@@ -188,15 +200,51 @@ void iteration(Grid & grid, std::vector<std::vector<long>> &neighbours_birth, st
 
 int main(int argc, char ** argv) {
     srand(time(NULL));
-    Grid grid(15000, 20000, 1);
-    std::vector<std::vector<long>> neighbours_birth = create_neighbours_vector(grid, 0);
-    std::vector<std::vector<long>> neighbours_death = create_neighbours_vector(grid, 1);
-    for (int i = 0; i != 300; ++i) {
+
+    std::string usage_string = "Usage: " + std::string(argv[0]) + " [size] [discretization] [iterations] [initial population] [wall type]";
+    if (argc != 6) {
+        std::cerr << "Wrong number of arguments\n" << usage_string << std::endl;
+        return 1;
+    }
+
+    char *endptr;
+
+    long int size = strtol(argv[1], &endptr, 10);
+    if (!*argv[1] || *endptr) {
+        std::cerr << "Wrong size: " << argv[1] << std::endl << usage_string << std::endl;
+        return 1;
+    }
+
+    long int discretization = strtol(argv[2], &endptr, 10);
+    if (!*argv[2] || *endptr) {
+        std::cerr << "Wrong discretization: " << argv[2] << std::endl << usage_string << std::endl;
+        return 1;
+    }
+
+    long int iterations = strtol(argv[3], &endptr, 10);
+    if (!*argv[3] || *endptr) {
+        std::cerr << "Wrong number of iterations: " << argv[3] << std::endl << usage_string << std::endl;
+        return 1;
+    }
+    long int init_population = strtol(argv[4], &endptr, 10);
+    if (!*argv[4] || *endptr) {
+        std::cerr << "Wrong initial population: " << argv[4] << std::endl;
+        return 1;
+    }
+
+    wall = strtol(argv[5], &endptr, 10);
+    if (!*argv[5] || *endptr) {
+        std::cerr << "Wrong wall type:" << argv[5] << "\n0 - killing, 1 - reflecting, 2 - reflecting to wall"<< std::endl << usage_string << std::endl;
+        return 1;
+    }
+
+    Grid grid(init_population, discretization, size);
+    for (int i = 0; i != iterations; ++i) {
         std::cout << i << " " << grid.get_population();
         // for (int j = 0; j < grid.get_discretization(); ++j) {
         //     std::cout << " " << grid[j].get_population();
         // }
         std::cout << std::endl;
-        iteration(grid, neighbours_birth, neighbours_death);
+        iteration(grid);
     }
 }
