@@ -11,9 +11,9 @@ The second implementation based on the Poisson process idea. We simulate contini
 
 ### Usage
 To run the first implementation for one dimention case run
-```bash
+``bash
 g++ sim_one_dim.cpp -o sim -std=c++11
-```
+``
 First implementation for two dimentions case currently doesn't work correctly at the moment (sim_two_dim.cpp).
 
 To run the second implementation (one and two dimensions cases are in one file) firstly download [Boost](http://www.boost.org), unarchive it and add Boost folder to compiler's include directories. Then run
