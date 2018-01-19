@@ -7,10 +7,10 @@
 #include <random>
 #include <vector>
 
-const double birth_rate = 0.3;
-const double death_rate = 0.4;
-double birth_variance = 0.1;
-double death_variance = 0.2;
+const double birth_rate = 0;//1e-4;
+const double death_rate = 1e-4;
+double birth_variance = 1e-2;
+double death_variance = 2e-3;
 int wall = 0;
 std::vector<double> birth_kernel;
 std::vector<double> death_kernel;
@@ -182,7 +182,7 @@ void iteration(Grid & grid) {
             cur_interval = count_interval_for_cell(i, grid, 0, wall);
             for (long j = cur_interval.first; j != cur_interval.second; ++j) {
                 if (i == j) continue;
-                double nobirth_prob = pow_int((1 - birth_kernel[std::abs(i - j)] * grid.get_cell_size()), 
+                double nobirth_prob = pow_int((1 - birth_kernel[std::abs(i - j)]), 
                     grid[i].get_population());  // * cell_size instead of integration
                 nobirth_matrix[grid[j].get_indices()] *= nobirth_prob;
             }
@@ -195,7 +195,7 @@ void iteration(Grid & grid) {
             cur_interval = count_interval_for_cell(i, grid, 1, wall);
             for (long j = cur_interval.first; j != cur_interval.second; ++j) {
                 if (j == i) continue;
-                double nodeath_prob = pow_int((1 - death_kernel[std::abs(i - j)] * grid.get_cell_size()), 
+                double nodeath_prob = pow_int((1 - death_kernel[std::abs(i - j)]), 
                     grid[i].get_population());  // * cell_size instead of integration
                 nodeath_matrix[grid[j].get_indices()] *= nodeath_prob;
             }
