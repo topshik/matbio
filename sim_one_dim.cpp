@@ -7,10 +7,10 @@
 #include <random>
 #include <vector>
 
-const double birth_rate = 0.4;
-const double death_rate = 0.2;
+const double birth_rate = 0.3;
+const double death_rate = 0.4;
 double birth_variance = 0.1;
-double death_variance = 0.1;
+double death_variance = 0.2;
 int wall = 0;
 std::vector<double> birth_kernel;
 std::vector<double> death_kernel;
@@ -116,7 +116,7 @@ public:
     }
 };
 
-double pow_int(double x, long p) {
+inline double pow_int(double x, long p) {
     double res = x;
     --p;
     for (long i = 0; i != p; ++i) {
@@ -145,7 +145,7 @@ std::vector<double> precompute_kernel(int type, Grid &grid) {
     }
     for (long i = 0; i <= max_distance; ++i) {
         result.push_back(
-            rate / (sqrt(2 * M_PI * pow_int(variance, 2))) * std::exp(-pow_int(distance(grid[0], grid[i]), 2) / (2 * variance))
+            rate / (sqrt(2 * M_PI) * variance) * std::exp(-pow_int(distance(grid[0], grid[i]), 2) / (2 * variance*variance))
         );
     }
     return result;
@@ -177,29 +177,36 @@ void iteration(Grid & grid) {
     std::vector<double> nodeath_matrix(grid.get_discretization(), 1);
     std::pair<long, long> cur_interval;
     for (long i = 0; i != grid.get_discretization(); ++i) {
+        // here we try to birth from i-th cell into j cell
         if (grid[i].get_population()) {
             cur_interval = count_interval_for_cell(i, grid, 0, wall);
             for (long j = cur_interval.first; j != cur_interval.second; ++j) {
-                double nobirth_prob = pow_int((1 - birth_kernel[std::abs(i - j)] * grid.get_cell_size()), grid[i].get_population());  // * cell_size instead of integration
-                nobirth_matrix[grid[i].get_indices()] *= nobirth_prob;
+                if (i == j) continue;
+                double nobirth_prob = pow_int((1 - birth_kernel[std::abs(i - j)] * grid.get_cell_size()), 
+                    grid[i].get_population());  // * cell_size instead of integration
+                nobirth_matrix[grid[j].get_indices()] *= nobirth_prob;
             }
         }
     }
     for (long i = 0; i != grid.get_discretization(); ++i) {
+        // here we try to influence from i-th cell into j cell and induce death
+        // in j-th cell
         if (grid[i].get_population()) {
             cur_interval = count_interval_for_cell(i, grid, 1, wall);
             for (long j = cur_interval.first; j != cur_interval.second; ++j) {
-                double nodeath_prob = pow_int((1 - death_kernel[std::abs(i - j)] * grid.get_cell_size()), grid[i].get_population());  // * cell_size instead of integration
+                if (j == i) continue;
+                double nodeath_prob = pow_int((1 - death_kernel[std::abs(i - j)] * grid.get_cell_size()), 
+                    grid[i].get_population());  // * cell_size instead of integration
                 nodeath_matrix[grid[j].get_indices()] *= nodeath_prob;
             }
         }
     }
     for (long i = 0; i != grid.get_discretization(); ++i) {
-        if (grid[i].get_population() && (float)rand() / RAND_MAX < nodeath_matrix[i]) {
+        if (grid[i].get_population() && ( (float)rand() / RAND_MAX >= nodeath_matrix[i] + 1e-10 ) ) {
             grid[i].set_population(grid[i].get_population() - 1);
             grid.set_population(grid.get_population() - 1);
         }
-        if ((float)rand() / RAND_MAX < nobirth_matrix[i]) {
+        if ((float)rand() / RAND_MAX >= nobirth_matrix[i] + 1e-10 ) {
             grid[i].set_population(grid[i].get_population() + 1);
             grid.set_population(grid.get_population() + 1);
         }
