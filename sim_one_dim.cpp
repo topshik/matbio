@@ -7,7 +7,7 @@
 #include <random>
 #include <vector>
 
-const double birth_rate = 0;//1e-4;
+const double birth_rate = 1e-4;
 const double death_rate = 1e-4;
 double birth_variance = 1e-2;
 double death_variance = 2e-3;
