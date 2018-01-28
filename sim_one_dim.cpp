@@ -29,11 +29,11 @@ public:
         return population;
     }
 
-    double get_coordinates() const {
+    double get_coordinates() const {  // FIXME: for many dimensions need a vector
         return x;
     }
 
-    long get_indices() const {
+    long get_indices() const {  // FIXME: for many dimensions need a vector
         return column;
     }
 
@@ -41,11 +41,11 @@ public:
         population = Population;
     }
 
-    void set_coordinates(double X) {
+    void set_coordinates(double X) {  // FIXME: for many dimensions need a vector
         x = X;
     }
 
-    void set_indices(long Column) {
+    void set_indices(long Column) {  // FIXME: for many dimensions need a vector
         column = Column;
     }
 
@@ -62,8 +62,8 @@ public:
 class Grid {
 private:
     long population, discretization;
-    double width;
-    double cell_width;
+    double width;  // FIXME: for many dimensions need a vector
+    double cell_width;  // FIXME: for many dimensions need a vector
     std::vector<Cell> cells;
 public:
     Grid() {};
@@ -87,7 +87,8 @@ public:
         return population;
     }
 
-    void set_population(long new_popul
+    void set_population(long new_population) {
+        population = new_population;
     }
 
     long get_discretization() const {
@@ -124,7 +125,7 @@ inline double pow_int(double x, long p) {
     return res;
 }
 
-double distance(const Cell &from, const Cell &to) {
+double distance(const Cell &from, const Cell &to) {  // FIXME: for many dimensions need a vector
     return std::abs(from.get_coordinates() - to.get_coordinates());
 }
 
@@ -195,7 +196,7 @@ void iteration(Grid & grid) {
             for (long j = cur_interval.first; j != cur_interval.second; ++j) {
                 if (j == i) continue;
                 double nodeath_prob = pow_int((1 - death_kernel[std::abs(i - j)]),
-                    grid[i].get_population());
+                    grid[i].get_population());  // * cell_size instead of integration
                 nodeath_matrix[grid[j].get_indices()] *= nodeath_prob;
             }
         }
