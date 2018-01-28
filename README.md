@@ -11,8 +11,9 @@ The second implementation based on the Poisson process idea. We simulate contini
 
 ### Usage
 To run the first implementation for one dimention case run
-```bash
-g++ sim_one_dim.cpp -o sim -std=c++11
+```
+g++ sim_one_dim.cpp -o sim -std=c++11 -O3
+./sim [field size] [discretization] [iterations] [initial population] [wall type]"
 ```
 First implementation for two dimentions case currently doesn't work correctly at the moment (sim_two_dim.cpp).
 
