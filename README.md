@@ -30,4 +30,3 @@ g++ sim_poison.cpp -o sim -std=c++11
 ### Unimplemented
  * Arbitrary birth and death kernels option
  * Multispecies models
- * Small issues (watch code comments)
