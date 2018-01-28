@@ -182,7 +182,7 @@ void iteration(Grid & grid) {
             cur_interval = count_interval_for_cell(i, grid, 0, wall);
             for (long j = cur_interval.first; j != cur_interval.second; ++j) {
                 if (i == j) continue;
-                double nobirth_prob = pow_int((1 - birth_kernel[std::abs(i - j)]), 
+                double nobirth_prob = pow_int((1 - birth_kernel[std::abs(i - j)]) * grid.get_cell_size(),
                     grid[i].get_population());  // * cell_size instead of integration
                 nobirth_matrix[grid[j].get_indices()] *= nobirth_prob;
             }
@@ -195,7 +195,7 @@ void iteration(Grid & grid) {
             cur_interval = count_interval_for_cell(i, grid, 1, wall);
             for (long j = cur_interval.first; j != cur_interval.second; ++j) {
                 if (j == i) continue;
-                double nodeath_prob = pow_int((1 - death_kernel[std::abs(i - j)]), 
+                double nodeath_prob = pow_int((1 - death_kernel[std::abs(i - j)]),
                     grid[i].get_population());  // * cell_size instead of integration
                 nodeath_matrix[grid[j].get_indices()] *= nodeath_prob;
             }
