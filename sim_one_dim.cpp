@@ -7,10 +7,10 @@
 #include <random>
 #include <vector>
 
-const double birth_rate = 1e-4;
-const double death_rate = 1e-4;
-double birth_variance = 1e-2;
-double death_variance = 2e-3;
+const double birth_rate = 3e-3;
+const double death_rate = 1e-5;
+double birth_variance = 2e-2;
+double death_variance = 1e-2;
 int wall = 0;
 std::vector<double> birth_kernel;
 std::vector<double> death_kernel;
@@ -29,11 +29,11 @@ public:
         return population;
     }
 
-    double get_coordinates() const {  // FIXME: for many dimensions need a vector
+    double get_coordinates() const {
         return x;
     }
 
-    long get_indices() const {  // FIXME: for many dimensions need a vector
+    long get_indices() const {
         return column;
     }
 
@@ -41,11 +41,11 @@ public:
         population = Population;
     }
 
-    void set_coordinates(double X) {  // FIXME: for many dimensions need a vector
+    void set_coordinates(double X) {
         x = X;
     }
 
-    void set_indices(long Column) {  // FIXME: for many dimensions need a vector
+    void set_indices(long Column) {
         column = Column;
     }
 
@@ -62,8 +62,8 @@ public:
 class Grid {
 private:
     long population, discretization;
-    double width;  // FIXME: for many dimensions need a vector
-    double cell_width;  // FIXME: for many dimensions need a vector
+    double width;
+    double cell_width;
     std::vector<Cell> cells;
 public:
     Grid() {};
@@ -87,23 +87,22 @@ public:
         return population;
     }
 
-    void set_population(long new_population) {
-        population = new_population;
+    void set_population(long new_popul
     }
 
-    long get_discretization() const {  // FIXME: for many dimensions need a vector
+    long get_discretization() const {
         return discretization;
     }
 
-    double get_size() const {  // FIXME: for many dimensions need a vector
+    double get_size() const {
         return width;
     }
 
-    double get_cell_size() const {  // FIXME: for many dimensions need a vector
+    double get_cell_size() const {
         return cell_width;
     }
 
-    std::vector<Cell> get_cells() const {  // FIXME: for many dimensions need a vector
+    std::vector<Cell> get_cells() const {
         return cells;
     }
 
@@ -125,7 +124,7 @@ inline double pow_int(double x, long p) {
     return res;
 }
 
-double distance(const Cell &from, const Cell &to) {  // FIXME: for many dimensions need a vector
+double distance(const Cell &from, const Cell &to) {
     return std::abs(from.get_coordinates() - to.get_coordinates());
 }
 
@@ -145,7 +144,7 @@ std::vector<double> precompute_kernel(int type, Grid &grid) {
     }
     for (long i = 0; i <= max_distance; ++i) {
         result.push_back(
-            rate / (sqrt(2 * M_PI) * variance) * std::exp(-pow_int(distance(grid[0], grid[i]), 2) / (2 * variance*variance))
+            rate / (sqrt(2 * M_PI) * variance) * std::exp(-pow_int(distance(grid[0], grid[i]), 2) / (2 * variance * variance))
         );
     }
     return result;
@@ -182,7 +181,7 @@ void iteration(Grid & grid) {
             cur_interval = count_interval_for_cell(i, grid, 0, wall);
             for (long j = cur_interval.first; j != cur_interval.second; ++j) {
                 if (i == j) continue;
-                double nobirth_prob = pow_int((1 - birth_kernel[std::abs(i - j)]) * grid.get_cell_size(),
+                double nobirth_prob = pow_int((1 - birth_kernel[std::abs(i - j)] * grid.get_cell_size()),
                     grid[i].get_population());  // * cell_size instead of integration
                 nobirth_matrix[grid[j].get_indices()] *= nobirth_prob;
             }
@@ -196,7 +195,7 @@ void iteration(Grid & grid) {
             for (long j = cur_interval.first; j != cur_interval.second; ++j) {
                 if (j == i) continue;
                 double nodeath_prob = pow_int((1 - death_kernel[std::abs(i - j)]),
-                    grid[i].get_population());  // * cell_size instead of integration
+                    grid[i].get_population());
                 nodeath_matrix[grid[j].get_indices()] *= nodeath_prob;
             }
         }
