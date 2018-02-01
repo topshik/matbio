@@ -1,8 +1,7 @@
-simulator.exe
-simulator
-sim
+.ipynb_checkpoints
+d_one.dSYM
+simulator.dSYM
 *~
-test.*
-simulator[1-9].exe
-*.csv
-d_one
+sim
+sim_one_dim
+sim_two_dim
