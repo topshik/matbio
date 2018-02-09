@@ -7,7 +7,7 @@
 #include <random>
 #include <vector>
 
-const double birth_rate = 3e-3;
+const double birth_rate = 6e-3;
 const double death_rate = 1e-5;
 double birth_variance = 2e-2;
 double death_variance = 1e-2;
@@ -254,16 +254,35 @@ int main(int argc, char ** argv) {
     }
 
     Grid grid(init_population, discretization, size);
-
     birth_kernel = precompute_kernel(0, grid);
     death_kernel = precompute_kernel(1, grid);
 
+    int number_of_simulations = 100;  // how many times you need to run sim with current parameters
+    std::vector<std::vector<int> > history;
+    std::vector<int> current_evolution(iterations);
+    std::ofstream output;
+    output.open(std::to_string(init_population) + ".txt");
+
+    for (int j = 0; j != number_of_simulations; ++j) {
+        Grid grid(init_population, discretization, size);
+        for (int i = 0; i != iterations; ++i) {
+            current_evolution[i] = grid.get_population();
+            // std::cout << i << " " << grid.get_population();
+            // for (int j = 0; j < grid.get_discretization(); ++j) {
+            //     std::cout << " " << grid[j].get_population();
+            // }
+            iteration(grid);
+        }
+        std::cout << j << std::endl;
+        history.push_back(current_evolution);
+    }
+
+    int sum_i;
     for (int i = 0; i != iterations; ++i) {
-        std::cout << i << " " << grid.get_population();
-        // for (int j = 0; j < grid.get_discretization(); ++j) {
-        //     std::cout << " " << grid[j].get_population();
-        // }
-        std::cout << std::endl;
-        iteration(grid);
+        sum_i = 0;
+        for (int j = 0; j != number_of_simulations; ++j) {
+            sum_i += history[j][i];
+        }
+        output << sum_i / number_of_simulations << std::endl;
     }
 }
