@@ -20,13 +20,15 @@ or you can use make file
 ./s1d.x [field size] [discretization] [iterations] [initial population] [wall type]"
 ```
 
-* To run the second implementation (one and two dimensions cases are in one file) firstly download [Boost](http://www.boost.org), unarchive it and add Boost folder to compiler's include directories. Then run
+* To run the second implementation (one and two dimensions cases are in one file) download [Boost](http://www.boost.org). 
+For windows, download visual studio c++ build tools. Then run
 ```
-g++ sim_poison.cpp -o sim -std=c++11
+cl *.cpp -bigobj -EHsc -I D:\boost_1_65_1 -o simulator.exe
 ```
+For linux, not tested.
 
 * First implementation for two dimentions case doesn't work correctly at the moment (sim_two_dim.cpp).
 
 ### Unimplemented
- * Arbitrary birth and death kernels option
+ * Arbitrary birth and death kernels option (done in poisson sim)
  * Multispecies models
