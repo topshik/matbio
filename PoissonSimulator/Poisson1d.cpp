@@ -268,6 +268,61 @@ using namespace alglib;
 	}
 
 	template <typename RNG>
+	void Grid_1d<RNG>::save_trajectory(ofstream& output, double max_time, string type) {
+		for (auto cell : cells) {
+			for (auto speciment_x : cell.coords_x) {
+				output << fixed << setprecision(15) << "0" << "," << speciment_x << "," << "1" << "," << type << endl;
+			}
+		}
+		while (time < max_time)
+		{
+			make_event();
+			output << fixed << setprecision(15) << time << "," << get<0>(last_event) << "," << get<1>(last_event) << "," << type << endl;
+		}
+	}
+
+	template <typename RNG>
+	void Grid_1d<RNG>::save_trajectory(ofstream& output, int max_events, string type) {
+		for (auto cell : cells) {
+			for (auto speciment_x : cell.coords_x) {
+				output << fixed << setprecision(15) << "0" << "," << speciment_x << "," << "1" << "," << type << endl;
+			}
+		}
+		for (int i = 0; i < max_events; i++) {
+			make_event();
+			output << fixed << setprecision(15) << time << "," << get<0>(last_event) << "," << get<1>(last_event) << "," << type << endl;
+		}
+	}
+
+	template <typename RNG>
+	void Grid_1d<RNG>::save_result(ofstream& output, double max_time, string type) {
+		while (time < max_time)
+		{
+			make_event();
+		}
+
+		for (auto cell : cells) {
+			for (auto speciment_x : cell.coords_x) {
+				output << fixed << setprecision(15) << speciment_x  << "," << type << endl;
+			}
+		}
+
+	}
+
+	template <typename RNG>
+	void Grid_1d<RNG>::save_result(ofstream& output, int max_events, string type) {
+		for (int i = 0; i < max_events; i++) {
+			make_event();
+		}
+
+		for (auto cell : cells) {
+			for (auto speciment_x : cell.coords_x) {
+				output << fixed << setprecision(15) << speciment_x << "," << type << endl;
+			}
+		}
+	}
+	
+	template <typename RNG>
 	Grid_1d<RNG>::Grid_1d(double Lx, int Nx, double b, double d, double dd, uint32_t Seed, double initial_density,
 						  string death_kernel, double death_cutoff, int death_spline_nodes,
 						  string birth_kernel, double birth_cutoff, int birth_spline_nodes) :

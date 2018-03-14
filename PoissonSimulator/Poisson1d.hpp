@@ -77,6 +77,12 @@ struct Grid_1d
 	void spawn_random();
 	void make_event();
 
+	void save_trajectory(ofstream& output, double time,string type = "");
+	void save_trajectory(ofstream& output, int max_events, string type = "");
+
+	void save_result(ofstream& output, double time, string type = "");
+	void save_result(ofstream& output, int max_events, string type = "");
+	
 	Grid_1d(double Lx, int Nx, 
 		double b, double d, double dd, 
 		uint32_t Seed, double initial_density,
