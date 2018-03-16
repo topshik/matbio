@@ -24,7 +24,7 @@ def launch(filename, params):
     ))
     plt.xlabel('iteration')
     plt.ylabel('population')
-    plt.plot(np.arange(int(params['iterations'])), out[:,1])
+    plt.plot(np.arange(int(params['iterations'])), out[:,1].astype(np.int))
     f.savefig('{}-{}-{}-{}.png'.format(
         params['birth_rate'],
         params['death_rate'],
