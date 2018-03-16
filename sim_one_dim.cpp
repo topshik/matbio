@@ -5,15 +5,17 @@
 #include <iostream>
 #include <iomanip>
 #include <random>
+#include <string>
 #include <vector>
 
-const double birth_rate = 6e-3;
-const double death_rate = 1e-5;
+double birth_rate = 6e-3;
+double death_rate = 1e-5;
 double birth_variance = 2e-2;
 double death_variance = 1e-2;
-int wall = 0;
 std::vector<double> birth_kernel;
 std::vector<double> death_kernel;
+
+int wall = 0;
 
 class Cell {
 private:
@@ -232,40 +234,59 @@ double second_momentum(Grid & grid) {
 int main(int argc, char ** argv) {
     srand(time(NULL));
 
-    std::string usage_string = "Usage: " + std::string(argv[0]) + " [size] [discretization] [iterations] [initial population] [wall type]";
-    if (argc != 6) {
+    std::string usage_string = "Usage: " + std::string(argv[0]) + " [size] [discretization] [iterations] [initial population] [birth rate] [death rate] [birth variance] [death variance]";
+    if (argc != 9) {
         std::cerr << "Wrong number of arguments\n" << usage_string << std::endl;
         return 1;
     }
 
     char *endptr;
 
-    long int size = strtol(argv[1], &endptr, 10);
+    long size = strtol(argv[1], &endptr, 10);
     if (!*argv[1] || *endptr) {
         std::cerr << "Wrong size: " << argv[1] << std::endl << usage_string << std::endl;
         return 1;
     }
 
-    long int discretization = strtol(argv[2], &endptr, 10);
+    long discretization = strtol(argv[2], &endptr, 10);
     if (!*argv[2] || *endptr) {
         std::cerr << "Wrong discretization: " << argv[2] << std::endl << usage_string << std::endl;
         return 1;
     }
 
-    long int iterations = strtol(argv[3], &endptr, 10);
+    long iterations = strtol(argv[3], &endptr, 10);
     if (!*argv[3] || *endptr) {
         std::cerr << "Wrong number of iterations: " << argv[3] << std::endl << usage_string << std::endl;
         return 1;
     }
-    long int init_population = strtol(argv[4], &endptr, 10);
+
+    long init_population = strtol(argv[4], &endptr, 10);
     if (!*argv[4] || *endptr) {
         std::cerr << "Wrong initial population: " << argv[4] << std::endl;
         return 1;
     }
 
-    wall = strtol(argv[5], &endptr, 10);
-    if (!*argv[5] || *endptr) {
-        std::cerr << "Wrong wall type:" << argv[5] << "\n0 - killing, 1 - periodical"<< std::endl << usage_string << std::endl;
+    double birth_rate = strtod(argv[5], &endptr);
+    if (!*argv[4] || *endptr) {
+        std::cerr << "Wrong birth_rate: " << argv[5] << std::endl;
+        return 1;
+    }
+
+    double death_rate = strtod(argv[6], &endptr);
+    if (!*argv[4] || *endptr) {
+        std::cerr << "Wrong death_rate: " << argv[6] << std::endl;
+        return 1;
+    }
+
+    double birth_variance = strtod(argv[7], &endptr);
+    if (!*argv[4] || *endptr) {
+        std::cerr << "Wrong birth_variance: " << argv[7] << std::endl;
+        return 1;
+    }
+
+    double death_variance = strtod(argv[8], &endptr);
+    if (!*argv[4] || *endptr) {
+        std::cerr << "Wrong death_variance: " << argv[8] << std::endl;
         return 1;
     }
 
@@ -274,7 +295,7 @@ int main(int argc, char ** argv) {
     death_kernel = precompute_kernel(1, grid);
 
     for (int i = 0; i != iterations; ++i) {
-        std::cout << grid.get_population() << std::endl;
+        std::cout << i << " " << grid.get_population() << " " << second_momentum(grid) << std::endl;
         // for (int j = 0; j < grid.get_discretization(); ++j) {
         //     std::cout << " " << grid[j].get_population();
         // }
