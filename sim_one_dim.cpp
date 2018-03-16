@@ -212,7 +212,7 @@ void iteration(Grid & grid) {
             grid[i].set_population(grid[i].get_population() + 1);
             grid.set_population(grid.get_population() + 1);
         }
-    }
+    }   
 }
 
 // average density of pairs of individuals
@@ -232,10 +232,9 @@ double second_momentum(Grid & grid) {
 }
 
 int main(int argc, char ** argv) {
-    srand(time(NULL));
 
-    std::string usage_string = "Usage: " + std::string(argv[0]) + " [size] [discretization] [iterations] [initial population] [birth rate] [death rate] [birth variance] [death variance]";
-    if (argc != 9) {
+    std::string usage_string = "Usage: " + std::string(argv[0]) + " size discretization iterations initial_population birth_rate death_rate birth_variance death_variance [seed]";
+    if (argc > 10 || argc < 9) {
         std::cerr << "Wrong number of arguments\n" << usage_string << std::endl;
         return 1;
     }
@@ -266,28 +265,40 @@ int main(int argc, char ** argv) {
         return 1;
     }
 
-    double birth_rate = strtod(argv[5], &endptr);
+    birth_rate = strtod(argv[5], &endptr);
     if (!*argv[5] || *endptr) {
         std::cerr << "Wrong birth_rate: " << argv[5] << std::endl;
         return 1;
     }
 
-    double death_rate = strtod(argv[6], &endptr);
+    death_rate = strtod(argv[6], &endptr);
     if (!*argv[6] || *endptr) {
         std::cerr << "Wrong death_rate: " << argv[6] << std::endl;
         return 1;
     }
 
-    double birth_variance = strtod(argv[7], &endptr);
+    birth_variance = strtod(argv[7], &endptr);
     if (!*argv[7] || *endptr) {
         std::cerr << "Wrong birth_variance: " << argv[7] << std::endl;
         return 1;
     }
 
-    double death_variance = strtod(argv[8], &endptr);
+    death_variance = strtod(argv[8], &endptr);
     if (!*argv[8] || *endptr) {
         std::cerr << "Wrong death_variance: " << argv[8] << std::endl;
         return 1;
+    }
+
+    if (argc < 10) {
+        srand(time(NULL));
+    } else {
+        long seed = strtol(argv[9], &endptr, 10);
+        if (!*argv[9] || *endptr) {
+            std::cerr << "Using time for seed" << argv[9] << std::endl;
+            srand(time(NULL));
+        } else {
+            srand(seed);
+        }
     }
 
     Grid grid(init_population, discretization, size);
