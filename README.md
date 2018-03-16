@@ -29,6 +29,12 @@ For linux, not tested.
 
 * First implementation for two dimentions case doesn't work correctly at the moment (sim_two_dim.cpp).
 
+### Launcher usage
+
+```
+launcher.py sim parameters_file num_of_cores
+```
+
 ### Unimplemented
  * Arbitrary birth and death kernels option (done in poisson sim)
  * Multispecies models
