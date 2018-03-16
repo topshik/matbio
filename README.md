@@ -13,7 +13,7 @@ The second implementation based on the Poisson process idea. We simulate contini
 * To run the first implementation for one dimention case run
 ```
 g++ sim_one_dim.cpp -o sim -std=c++11 -O3
-./sim [field size] [discretization] [iterations] [initial population] [wall type]"
+./sim [field size] [discretization] [iterations] [initial population] [birth rate] [death rate] [birth variance] [death variance]"
 ```
 or you can use make file
 ```
