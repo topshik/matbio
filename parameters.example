@@ -1,0 +1,3 @@
+size discretization iterations initial_population birth_rate death_rate birth_variance death_variance
+1 10000 10000 500 6e-3 1e-5 2e-1 1e-2
+1 10000 10000 500 6e-3 1e-5 2e-1 1e-1
