@@ -17,7 +17,7 @@ g++ sim_one_dim.cpp -o sim -std=c++11 -O3
 ```
 or you can use make file
 ```
-./s1d.x [field size] [discretization] [iterations] [initial population] [wall type]"
+./s1d.x [field size] [discretization] [iterations] [initial population] [birth rate] [death rate] [birth variance] [death variance]"
 ```
 
 * To run the second implementation (one and two dimensions cases are in one file) download [Boost](http://www.boost.org). 
