@@ -267,25 +267,25 @@ int main(int argc, char ** argv) {
     }
 
     double birth_rate = strtod(argv[5], &endptr);
-    if (!*argv[4] || *endptr) {
+    if (!*argv[5] || *endptr) {
         std::cerr << "Wrong birth_rate: " << argv[5] << std::endl;
         return 1;
     }
 
     double death_rate = strtod(argv[6], &endptr);
-    if (!*argv[4] || *endptr) {
+    if (!*argv[6] || *endptr) {
         std::cerr << "Wrong death_rate: " << argv[6] << std::endl;
         return 1;
     }
 
     double birth_variance = strtod(argv[7], &endptr);
-    if (!*argv[4] || *endptr) {
+    if (!*argv[7] || *endptr) {
         std::cerr << "Wrong birth_variance: " << argv[7] << std::endl;
         return 1;
     }
 
     double death_variance = strtod(argv[8], &endptr);
-    if (!*argv[4] || *endptr) {
+    if (!*argv[8] || *endptr) {
         std::cerr << "Wrong death_variance: " << argv[8] << std::endl;
         return 1;
     }
