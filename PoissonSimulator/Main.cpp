@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
-#include "Poisson1d.hpp"
-#include "Poisson1d.cpp"
+#include "Poisson1d.h"
 
 using namespace std;
 using namespace boost;
@@ -22,16 +21,17 @@ int main()
 	double comp_death_rate_default = 1e-4;
 	uint32_t seed_default = 12345;
 	double initial_density_default = 10.0;
-	string death_kernel_default = "(1 / (sqrt(2*pi) * (2e-3)) * exp((-r^2) / (2 * (2e-3) * (2e-3))))";
-	double death_interaction_cutoff_default = 6 * 2e-3;
+	string death_kernel_default = "(1 / (sqrt(2*pi) * (1e-2)) * exp((-r^2) / (2 * (1e-2) * (1e-2))))";
+	double death_interaction_cutoff_default = 6 * 1e-2;
 	int death_spline_nodes_default = 1000;
-	string birth_kernel_default = "(1 / (sqrt(2*pi) * (1e-2)) * exp((-r^2) / (2 * (1e-2) * (1e-2))))";
-	double birth_interaction_cutoff_default = 6 * 1e-2;
+	string birth_kernel_default = "(1 / (sqrt(2*pi) * (2e-2)) * exp((-r^2) / (2 * (2e-2) * (2e-2))))";
+	double birth_interaction_cutoff_default = 6 * 2e-2;
 	int birth_spline_death_nodes_default = 1000;
 
 	double max_time_default = 100;
 	double time_step_default = 100;
 	
+
 
 	birth_rate_default = 6.158482;
 	comp_death_rate_default = 1;
@@ -83,7 +83,6 @@ int main()
 		);
 		grid.save_trajectory(out, 500000*(i+1),to_string(i));
 	}
-
 
 	while (true) {
 		stringstream file_name_stream;
@@ -225,6 +224,8 @@ int main()
 		double i = 0;
 		ofstream out(file_name_default);
 		out << "Time,Population,Events" << endl;
+
+		grid.save_trajectory(out, max_time_default*100);
 		while (grid.time < max_time_default)
 		{
 			if (grid.time > i) {

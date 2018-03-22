@@ -1,100 +1,76 @@
+#pragma once
 #include "stdafx.h"
-#include "Poisson1d.hpp"
-
+#include "SplineBuilding.h"
 
 using namespace std;
-using namespace boost;
-using namespace chrono;
-using namespace random;
 using namespace alglib;
+using namespace spline_building;
 
-	template <typename RNG>
-	void Grid_1d<RNG>::Build_death_splines(string death_kernel, double death_cutoff, int death_spline_nodes) {
+#ifndef POISSON_1D_H
+#define POISSON_1D_H
 
-	double death_r;
+enum class BoundaryConditions_1d
+{
+	PERIODIC,
+	KILLING,
+	REFLECTIVE
+};
 
-	exprtk::symbol_table<double>	death_kernel_symbol_table;
-	exprtk::expression<double>		death_kernel_expression;
-	exprtk::parser<double>			death_kernel_parser;
+struct Cell_1d
+{
 
-	death_kernel_symbol_table.add_variable("r", death_r);
-	death_kernel_symbol_table.add_constants();
-	death_kernel_expression.register_symbol_table(death_kernel_symbol_table);
-	death_kernel_parser.compile(death_kernel_string, death_kernel_expression);
+	vector<double> coords_x;
+	vector<double> death_rates;
 
-	real_1d_array x_1d_array;
-	real_1d_array y_1d_array;
+	Cell_1d() {}
+};
 
-	x_1d_array.setlength(death_spline_nodes + 3);
-	y_1d_array.setlength(death_spline_nodes + 3);
+template <typename RNG>
+struct Grid_1d
+{
+	vector<Cell_1d> cells;
+	vector<double> cell_death_rates;
+	vector<int> cell_population;
+	double Lx;
+	int Nx;
+	double b, d, dd;
+	RNG rng;
+	double initial_density;
 
-	for (int i = 0; i < death_spline_nodes + 3; i++) {
-		x_1d_array[i] = death_cutoff*i / (death_spline_nodes + 3 - 1);
-		death_r = x_1d_array[i];
-		if (i < death_spline_nodes){
-			y_1d_array[i] = death_kernel_expression.value();
-		}
-		else {
-			y_1d_array[i] = 0;
-		}
+	int total_population;
+	double total_death_rate;
+
+	double time;
+	int event_count;
+
+	double cutoff_radius_death;
+	int cull_x;
+
+	string death_kernel_string;
+	spline1dinterpolant death_kernel_spline;
+
+	string birth_kernel_string;
+	spline1dinterpolant birth_reverse_cdf_spline;
+
+	tuple<double, int> last_event;
+
+	Cell_1d& cell_at(int i)
+	{
+		return cells[i];
 	}
 
-	spline1dbuildmonotone(x_1d_array, y_1d_array, death_kernel_spline);
-}
-
-	template <typename RNG>
-	void Grid_1d<RNG>::Build_birth_splines(string birth_kernel, double birth_cutoff, int birth_spline_nodes) {
-		double birth_r;
-
-		exprtk::symbol_table<double>	birth_kernel_symbol_table;
-		exprtk::expression<double>		birth_kernel_expression;
-		exprtk::parser<double>			birth_kernel_parser;
-
-		birth_kernel_symbol_table.add_variable("r", birth_r);
-		birth_kernel_symbol_table.add_constants();
-		birth_kernel_expression.register_symbol_table(birth_kernel_symbol_table);
-		birth_kernel_parser.compile(birth_kernel_string, birth_kernel_expression);
-
-		real_1d_array x_1d_array;
-		real_1d_array y_1d_array;
-
-		x_1d_array.setlength(birth_spline_nodes+3);
-		y_1d_array.setlength(birth_spline_nodes+3);
-
-		for (int i = 0; i < birth_spline_nodes+3; i++) {
-			x_1d_array[i] = birth_cutoff*i / (birth_spline_nodes +3 - 1);
-			birth_r = x_1d_array[i];
-			if (i < birth_spline_nodes) {
-				y_1d_array[i] = birth_kernel_expression.value();
-			}
-			else {
-				y_1d_array[i] = 0;
-			}
-		}
-		spline1dbuildmonotone(x_1d_array, y_1d_array, birth_kernel_spline);
-
-		real_1d_array x_quantile_1d_array;
-		real_1d_array y_quantile_1d_array;
-
-		x_quantile_1d_array.setlength(birth_spline_nodes);
-		y_quantile_1d_array.setlength(birth_spline_nodes);
-
-		double approx_const = spline1dintegrate(birth_kernel_spline, birth_cutoff);
-		for (int i = 0; i < birth_spline_nodes; i++) {
-			x_quantile_1d_array[i] = (double)i / (birth_spline_nodes - 1);
-			y_quantile_1d_array[i] = 
-				math::tools::newton_raphson_iterate(
-					[=](double y) {return make_tuple(
-						spline1dintegrate(birth_kernel_spline, y)/approx_const - x_quantile_1d_array[i],
-						spline1dcalc(birth_kernel_spline,y) / approx_const); },
-				1e-10, 0.0, birth_cutoff, numeric_limits<double>::digits);
-		}
-		spline1dbuildmonotone(x_quantile_1d_array, y_quantile_1d_array, birth_reverse_cdf_spline);
+	double & cell_death_rate_at(int i)
+	{
+		return cell_death_rates[i];
 	}
-	
 
-	template <typename RNG>
-	void Grid_1d<RNG>::Initialize_death_rates()
+	int& cell_population_at(int i)
+	{
+		return cell_population[i];
+	}
+
+
+	void Initialize_death_rates()
 	{
 		//Spawn all speciments
 		total_population = static_cast<int>(ceil(Lx*initial_density)); //initial population at t=0
@@ -144,14 +120,16 @@ using namespace alglib;
 		}
 	}
 
-	template <typename RNG>
-	void Grid_1d<RNG>::kill_random()
+	
+	void kill_random()
 	{
 
 		int cell_death_index = boost::random::discrete_distribution<>(cell_death_rates)(rng);
 		int in_cell_death_index = boost::random::discrete_distribution<>(cells[cell_death_index].death_rates)(rng);
 
 		Cell_1d & death_cell = cells[cell_death_index];
+
+		last_event = make_tuple<>(death_cell.coords_x[in_cell_death_index], -1);
 
 		int cell_death_x = cell_death_index;
 
@@ -161,7 +139,7 @@ using namespace alglib;
 			{
 				if (i == cell_death_x && k == in_cell_death_index) continue;
 
-				
+
 				double distance = abs(cell_at(i).coords_x[k] - death_cell.coords_x[in_cell_death_index]);
 				double interaction = dd*spline1dcalc(death_kernel_spline, distance);
 
@@ -194,8 +172,8 @@ using namespace alglib;
 		death_cell.coords_x.erase(death_cell.coords_x.end() - 1);
 	}
 
-	template <typename RNG>
-	void Grid_1d<RNG>::spawn_random()
+	
+	void spawn_random()
 	{
 		int cell_index = boost::random::discrete_distribution<>(cell_population)(rng);
 
@@ -203,11 +181,14 @@ using namespace alglib;
 
 		Cell_1d & parent_cell = cells[cell_index];
 
-		double x_coord_new = parent_cell.coords_x[event_index] + 
-			spline1dcalc(birth_reverse_cdf_spline, boost::random::uniform_01<>()(rng))*(boost::random::bernoulli_distribution<double>(0.5)(rng)*2-1);
+		double x_coord_new = parent_cell.coords_x[event_index] +
+			spline1dcalc(birth_reverse_cdf_spline, boost::random::uniform_01<>()(rng))*(boost::random::bernoulli_distribution<>(0.5)(rng) * 2 - 1);
+
+		last_event = make_tuple<>(x_coord_new, 1);
 
 		if (x_coord_new<0 || x_coord_new>Lx)
 		{
+			last_event = make_tuple<>(x_coord_new, 0);
 			//Speciment failed to spawn and died outside area boundaries
 		}
 		else
@@ -234,7 +215,7 @@ using namespace alglib;
 				{
 					if (i == new_i && k == cell_population_at(new_i) - 1) continue;
 
-					double distance =abs(cell_at(i).coords_x[k] - x_coord_new);
+					double distance = abs(cell_at(i).coords_x[k] - x_coord_new);
 					double interaction = dd*spline1dcalc(death_kernel_spline, distance);
 
 					cell_at(i).death_rates[k] += interaction;
@@ -250,8 +231,8 @@ using namespace alglib;
 
 	}
 
-	template <typename RNG>
-	void Grid_1d<RNG>::make_event()
+	
+	void make_event()
 	{
 		event_count++;
 		time += boost::random::exponential_distribution<>(total_population*b + total_death_rate)(rng);
@@ -267,8 +248,8 @@ using namespace alglib;
 
 	}
 
-	template <typename RNG>
-	void Grid_1d<RNG>::save_trajectory(ofstream& output, double max_time, string type) {
+	
+	void save_trajectory(ofstream& output, double max_time, string type="") {
 		for (auto cell : cells) {
 			for (auto speciment_x : cell.coords_x) {
 				output << fixed << setprecision(15) << "0" << "," << speciment_x << "," << "1" << "," << type << endl;
@@ -281,8 +262,8 @@ using namespace alglib;
 		}
 	}
 
-	template <typename RNG>
-	void Grid_1d<RNG>::save_trajectory(ofstream& output, int max_events, string type) {
+	
+	void save_trajectory(ofstream& output, int max_events, string type = "") {
 		for (auto cell : cells) {
 			for (auto speciment_x : cell.coords_x) {
 				output << fixed << setprecision(15) << "0" << "," << speciment_x << "," << "1" << "," << type << endl;
@@ -294,8 +275,7 @@ using namespace alglib;
 		}
 	}
 
-	template <typename RNG>
-	void Grid_1d<RNG>::save_result(ofstream& output, double max_time, string type) {
+	void save_result(ofstream& output, double max_time, string type = "") {
 		while (time < max_time)
 		{
 			make_event();
@@ -303,14 +283,13 @@ using namespace alglib;
 
 		for (auto cell : cells) {
 			for (auto speciment_x : cell.coords_x) {
-				output << fixed << setprecision(15) << speciment_x  << "," << type << endl;
+				output << fixed << setprecision(15) << speciment_x << "," << type << endl;
 			}
 		}
 
 	}
 
-	template <typename RNG>
-	void Grid_1d<RNG>::save_result(ofstream& output, int max_events, string type) {
+	void save_result(ofstream& output, int max_events, string type = "") {
 		for (int i = 0; i < max_events; i++) {
 			make_event();
 		}
@@ -321,21 +300,25 @@ using namespace alglib;
 			}
 		}
 	}
-	
-	template <typename RNG>
-	Grid_1d<RNG>::Grid_1d(double Lx, int Nx, double b, double d, double dd, uint32_t Seed, double initial_density,
-						  string death_kernel, double death_cutoff, int death_spline_nodes,
-						  string birth_kernel, double birth_cutoff, int birth_spline_nodes) :
+
+	Grid_1d(double Lx, int Nx, double b, double d, double dd, uint32_t Seed, double initial_density,
+		string death_kernel, double death_cutoff, int death_spline_nodes,
+		string birth_kernel, double birth_cutoff, int birth_spline_nodes) :
 		cells(Nx), cell_death_rates(Nx), cell_population(Nx),
 		Lx(Lx), Nx(Nx), b(b), d(d), dd(dd), rng(Seed),
-		death_kernel_string(death_kernel), death_kernel_spline(),
-		birth_kernel_string(birth_kernel), birth_kernel_spline(),birth_reverse_cdf_spline(),
-		initial_density(initial_density), time(0), event_count(0)
+		death_kernel_string(death_kernel),
+		birth_kernel_string(birth_kernel),
+		initial_density(initial_density), time(0), event_count(0), last_event(make_tuple<double, int>(0.0, 0))
 	{
-		cull_x = max(static_cast<int>(ceil(death_cutoff / (Lx / Nx))),3);
+		cull_x = max(static_cast<int>(ceil(death_cutoff / (Lx / Nx))), 3);
 
-		Build_death_splines(death_kernel, death_cutoff, death_spline_nodes);
-		Build_birth_splines(birth_kernel, birth_cutoff, birth_spline_nodes);
+		death_kernel_spline = Build_death_splines(death_kernel, death_cutoff, death_spline_nodes);
+		birth_reverse_cdf_spline = Build_birth_splines(birth_kernel, birth_cutoff, birth_spline_nodes);
+
 		Initialize_death_rates();
 		total_death_rate = accumulate(cell_death_rates.begin(), cell_death_rates.end(), 0.0);
 	}
+
+};
+
+#endif
