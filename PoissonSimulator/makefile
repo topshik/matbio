@@ -1,11 +1,11 @@
 CXX      := -g++
-CXXFLAGS := -pedantic-errors -Wall-std=c++11
+CXXFLAGS := -pedantic-errors -Wall -std=c++11
 LDFLAGS  := -L/usr/lib -lstdc++ -lm
 BUILD    := ./build
 OBJ_DIR  := $(BUILD)/objects
 APP_DIR  := $(BUILD)/apps
 TARGET   := poisson_sim.exe
-INCLUDE  := -I=/mnt/d/boost_1_65_1 -I=/mnt/c/Users/Egor/Desktop/Simulatorsgithub/matbio/PoissonSimulator/alglib
+INCLUDE  := -I=/mnt/d/boost_1_65_1 -I=./alglib
 SRC      :=                   	\
 	$(wildcard *.cpp) 			\
 	$(wildcard alglib/*.cpp) 	\

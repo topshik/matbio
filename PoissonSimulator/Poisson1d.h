@@ -6,6 +6,7 @@ using namespace std;
 using namespace alglib;
 using namespace spline_building;
 
+
 #ifndef POISSON_1D_H
 #define POISSON_1D_H
 
@@ -249,7 +250,7 @@ struct Grid_1d
 	}
 
 	
-	void save_trajectory(ofstream& output, double max_time, string type="") {
+	void save_trajectory(ostream& output, double max_time, string type="") {
 		for (auto cell : cells) {
 			for (auto speciment_x : cell.coords_x) {
 				output << fixed << setprecision(15) << "0" << "," << speciment_x << "," << "1" << "," << type << endl;
@@ -262,8 +263,7 @@ struct Grid_1d
 		}
 	}
 
-	
-	void save_trajectory(ofstream& output, int max_events, string type = "") {
+	void save_trajectory(ostream& output, int max_events, string type = "") {
 		for (auto cell : cells) {
 			for (auto speciment_x : cell.coords_x) {
 				output << fixed << setprecision(15) << "0" << "," << speciment_x << "," << "1" << "," << type << endl;
@@ -275,7 +275,7 @@ struct Grid_1d
 		}
 	}
 
-	void save_result(ofstream& output, double max_time, string type = "") {
+	void save_result(ostream& output, double max_time, string type = "") {
 		while (time < max_time)
 		{
 			make_event();
@@ -289,7 +289,7 @@ struct Grid_1d
 
 	}
 
-	void save_result(ofstream& output, int max_events, string type = "") {
+	void save_result(ostream& output, int max_events, string type = "") {
 		for (int i = 0; i < max_events; i++) {
 			make_event();
 		}
@@ -298,6 +298,38 @@ struct Grid_1d
 			for (auto speciment_x : cell.coords_x) {
 				output << fixed << setprecision(15) << speciment_x << "," << type << endl;
 			}
+		}
+	}
+
+	void save_slices(ostream& output, int discretization, double stop_time, double delta_time) {
+		auto discretize = [&](int discretization) {
+			vector<int> pops(discretization);
+			for (auto cell : cells) {
+				for (auto speciment_x : cell.coords_x) {
+					int index = (int)floor(speciment_x / (Lx / discretization));
+					if (index == discretization) index--;
+					pops[index]++;
+				}
+			}
+			return pops;
+		};
+		output << "0";
+		for (int pop : discretize(discretization)) {
+			output << "," << pop;
+		}
+		output << endl;
+
+		int epochs = (int)floor(stop_time / delta_time);
+
+		for (int i = 1; i <= epochs; i++) {
+			while (time < delta_time*i) {
+				make_event();
+			}
+			output << delta_time*i;
+			for (int pop : discretize(discretization)) {
+				output << "," << pop;
+			}
+			output << endl;
 		}
 	}
 
