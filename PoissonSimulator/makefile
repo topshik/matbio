@@ -1,57 +1,39 @@
-simulator: Main.o alglibinternal.o alglibmisc.o ap.o dataanalysis.o diffequations.o fasttransforms.o integration.o interpolation.o linalg.o optimization.o solvers.o specialfunctions.o statistics.o stdafx.o Poisson1d.o Poisson2d.o
-	g++ -o simulator Main.o alglibinternal.o alglibmisc.o ap.o dataanalysis.o diffequations.o fasttransforms.o integration.o interpolation.o linalg.o optimization.o solvers.o specialfunctions.o statistics.o stdafx.o Poisson1d.o Poisson2d.o
-     
-Main.o: Main.cpp 
-	g++ -c $(CPPFLAGS) Main.cpp
+CXX      := -g++
+CXXFLAGS := -pedantic-errors -Wall -std=c++11
+LDFLAGS  := -L/usr/lib -lstdc++ -lm
+BUILD    := ./build
+OBJ_DIR  := $(BUILD)/objects
+APP_DIR  := $(BUILD)/apps
+TARGET   := poisson_sim.exe
+INCLUDE  := -I=/mnt/d/boost_1_65_1 -I=./alglib
+SRC      :=                   	\
+	$(wildcard *.cpp) 			\
+	$(wildcard alglib/*.cpp) 	\
 
-alglibinternal.o: alglibinternal.cpp alglibinternal.h
-	g++ -c $(CPPFLAGS) alglibinternal.cpp
-	
-alglibmisc.o:	alglibmisc.cpp alglibmisc.h
-	g++ -c $(CPPFLAGS) alglibmisc.cpp
-	
-ap.o: ap.cpp ap.h
-	g++ -c $(CPPFLAGS) ap.cpp
+OBJECTS := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 
-dataanalysis.o: dataanalysis.cpp dataanalysis.h
-	g++ -c $(CPPFLAGS) dataanalysis.cpp
-	
-diffequations.o: diffequations.cpp diffequations.h
-	g++ -c $(CPPFLAGS) diffequations.cpp
-	
-fasttransforms.o: fasttransforms.cpp fasttransforms.h
-	g++ -c $(CPPFLAGS) fasttransforms.cpp
-	
-integration.o: integration.cpp integration.h
-	g++ -c $(CPPFLAGS) integration.cpp
-	
-interpolation.o: interpolation.cpp interpolation.h
-	g++ -c $(CPPFLAGS) interpolation.cpp
-	
-linalg.o: linalg.cpp linalg.h
-	g++ -c $(CPPFLAGS) linalg.cpp
-	
-optimization.o: optimization.cpp optimization.h
-	g++ -c $(CPPFLAGS) optimization.cpp
-	
-solvers.o: solvers.cpp solvers.h
-	g++ -c $(CPPFLAGS) solvers.cpp
-	
-specialfunctions.o: specialfunctions.cpp specialfunctions.h
-	g++ -c $(CPPFLAGS) specialfunctions.cpp
-	
-statistics.o: statistics.cpp statistics.h
-	g++ -c $(CPPFLAGS) statistics.cpp
-	
-stdafx.o: stdafx.cpp stdafx.h
-	g++ -c $(CPPFLAGS) stdafx.cpp
-	
-Poisson1d.o: Poisson1d.cpp Poisson1d.hpp
-	g++ -c $(CPPFLAGS) Poisson1d.cpp
-	
-Poisson2d.o: Poisson2d.cpp Poisson2d.hpp
-	g++ -c $(CPPFLAGS) Poisson2d.cpp
-	
+all: build $(APP_DIR)/$(TARGET)
+
+$(OBJ_DIR)/%.o: %.cpp
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ -c $<
+
+$(APP_DIR)/$(TARGET): $(OBJECTS)
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LDFLAGS) -o $(APP_DIR)/$(TARGET) $(OBJECTS)
+
+.PHONY: all build clean debug release
+
+build:
+	@mkdir -p $(APP_DIR)
+	@mkdir -p $(OBJ_DIR)
+
+debug: CXXFLAGS += -DDEBUG -g
+debug: all
+
+release: CXXFLAGS += -O2
+release: all
 
 clean:
-	rm simulator Main.o alglibinternal.o alglibmisc.o ap.o dataanalysis.o diffequations.o fasttransforms.o integration.o interpolation.o linalg.o optimization.o solvers.o specialfunctions.o statistics.o stdafx.o Poisson1d.o Poisson2d.o
+	-@rm -rf $(OBJ_DIR)/*
+	-@rm -rf $(APP_DIR)/*
