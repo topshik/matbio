@@ -35,10 +35,10 @@ def launch(filename, params, repeats):
     )
     if not os.path.exists(path):
         os.makedirs(path)
-    # os.chdir(path)
 
     print('Started')
     for i in range(repeats):
+        params['seed'] = str(int(params['seed']) + 1)
         out = subprocess.check_output(['../' + filename] + list(params), universal_newlines=True)
         out = np.array(out.split()).reshape(-1, 3 + int(params['discretization']))
         with open('{}/{}_{}_traj'.format(path, path, i), 'w+') as f:
