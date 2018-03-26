@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Poisson2d.hpp"
+#include "Poisson2d.h"
 
 #ifndef STARTING_CONDITIONS_2D
 #define SIGMA_DEATH_2D 2e-3

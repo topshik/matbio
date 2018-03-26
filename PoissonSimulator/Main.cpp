@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
-#include "Poisson1d.hpp"
-#include "Poisson1d.cpp"
+#include "Poisson1d.h"
 
 using namespace std;
 using namespace boost;
@@ -9,12 +8,57 @@ using namespace chrono;
 using namespace random;
 
 /*
-To run simulation, specify all parameters below and define CURRENT_DEATH_KERNEL(radius) and CULL_DEATH_INTERACTION_RADIUS
-for death interaction function and define CURRENT_MOVE_RANDOM_VARIABLE_BY_ONE_AXIS(RNG) birth move random variable that
-takes PRNG as a parameter.
+
 */
-int main()
+int main(int argc, char **argv)
 {
+
+	/*
+	size discretization stop_time delta_time initial_population birth_rate death_rate birth_variance death_variance[seed]
+
+	parameter example:
+	1 10000 1000 10 500 6e-3 1e-5 2e-1 0.001 2
+	*/
+
+	double x_length = atof(argv[1]);
+	int discretization = atoi(argv[2]);
+	double stop_time = atof(argv[3]);
+	double delta_time = atof(argv[4]);
+	int initial_population = atoi(argv[5]);
+	double birth_rate= atof(argv[6]);
+	double death_rate= atof(argv[7]);
+	double birth_var= atof(argv[8]);
+	double death_var= atof(argv[9]);
+	int seed= atoi(argv[10]);
+
+	string death_kernel;
+	string birth_kernel;
+
+	stringstream str_str;
+	str_str << "(1 / (sqrt(2*pi) * " << birth_var << ") * exp((-r^2) / (2 * " << birth_var << " * " << birth_var << ")))" << endl;
+	getline(str_str, birth_kernel);
+
+	str_str << "(1 / (sqrt(2*pi) * " << death_var << ") * exp((-r^2) / (2 * " << death_var << " * " << death_var << ")))" << endl;
+	getline(str_str, death_kernel);
+
+	Grid_1d<lagged_fibonacci607> grid(
+		x_length,								// Length by x
+		250,									// Partitions by x
+		birth_rate,								// Birth rate
+		0,										// Death rate
+		death_rate,								// Competitive death rate
+		seed,									// RNG seed
+		(double)initial_population / x_length,	// Initial density
+		death_kernel,							// Death kernel
+		death_var*6,							// Death interaction cutoff
+		1000,									// Death kernel spline nodes
+		birth_kernel,							// Birth kernel
+		birth_var * 6,							// Birth interaction cutoff
+		1000									// Birth kernel spline nodes
+	);
+
+	grid.save_slices(cout, discretization, stop_time, delta_time);
+	/*
 	double x_length_default = 1.0;
 	int x_partition_default = 100;
 	double birth_rate_default = 1e-4;
@@ -22,16 +66,17 @@ int main()
 	double comp_death_rate_default = 1e-4;
 	uint32_t seed_default = 12345;
 	double initial_density_default = 10.0;
-	string death_kernel_default = "(1 / (sqrt(2*pi) * (2e-3)) * exp((-r^2) / (2 * (2e-3) * (2e-3))))";
-	double death_interaction_cutoff_default = 6 * 2e-3;
+	string death_kernel_default = "(1 / (sqrt(2*pi) * (1e-2)) * exp((-r^2) / (2 * (1e-2) * (1e-2))))";
+	double death_interaction_cutoff_default = 6 * 1e-2;
 	int death_spline_nodes_default = 1000;
-	string birth_kernel_default = "(1 / (sqrt(2*pi) * (1e-2)) * exp((-r^2) / (2 * (1e-2) * (1e-2))))";
-	double birth_interaction_cutoff_default = 6 * 1e-2;
+	string birth_kernel_default = "(1 / (sqrt(2*pi) * (2e-2)) * exp((-r^2) / (2 * (2e-2) * (2e-2))))";
+	double birth_interaction_cutoff_default = 6 * 2e-2;
 	int birth_spline_death_nodes_default = 1000;
 
 	double max_time_default = 100;
 	double time_step_default = 100;
 	
+
 
 	birth_rate_default = 6.158482;
 	comp_death_rate_default = 1;
@@ -83,7 +128,6 @@ int main()
 		);
 		grid.save_trajectory(out, 500000*(i+1),to_string(i));
 	}
-
 
 	while (true) {
 		stringstream file_name_stream;
@@ -225,6 +269,8 @@ int main()
 		double i = 0;
 		ofstream out(file_name_default);
 		out << "Time,Population,Events" << endl;
+
+		grid.save_trajectory(out, max_time_default*100);
 		while (grid.time < max_time_default)
 		{
 			if (grid.time > i) {
@@ -239,5 +285,6 @@ int main()
 			grid.make_event();
 		}
 	}
+	*/
 	return 0;
 }
