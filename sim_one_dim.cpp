@@ -212,23 +212,7 @@ void iteration(Grid & grid) {
             grid[i].set_population(grid[i].get_population() + 1);
             grid.set_population(grid.get_population() + 1);
         }
-    }   
-}
-
-// average density of pairs of individuals
-double second_momentum(Grid & grid) {
-    double res = 0;
-    long number_of_pairs = grid.get_discretization() * (grid.get_discretization() + 1) / 2;
-    for (long i = 0; i != grid.get_discretization(); ++i) {
-        if (grid[i].get_population() != 0) {
-            for (long j = 0; j != grid.get_discretization(); ++j) {
-                if (grid[j].get_population() != 0) {
-                    res += distance(grid[i], grid[j]) * grid[j].get_population() * grid[j].get_population();
-                }
-            }
-        }
     }
-    return res / number_of_pairs;
 }
 
 int main(int argc, char ** argv) {
