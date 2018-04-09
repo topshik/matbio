@@ -292,9 +292,9 @@ int main(int argc, char ** argv) {
     for (int i = 0; i != iterations; ++i) {
         std::cout << i << " " << grid.get_population() << " ";
 
-        for (int j = 0; j < grid.get_discretization(); ++j) {
-            std::cout << " " << grid[j].get_population();
-        }
+        // for (int j = 0; j < grid.get_discretization(); ++j) {
+        //     std::cout << " " << grid[j].get_population();
+        // }
         std::cout << std::endl;
         iteration(grid);
     }
