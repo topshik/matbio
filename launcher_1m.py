@@ -9,6 +9,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import time
 from string import ascii_lowercase, ascii_uppercase, digits
 
 dictionary = digits + ascii_lowercase + ascii_uppercase
@@ -27,27 +28,11 @@ def b36encode(arr):
     return result
 
 def launch(filename, params, repeats):
-    path = '{}-{}-{}-{}'.format(
-        params['birth_rate'],
-        params['death_rate'],
-        params['birth_variance'],
-        params['death_variance'],
-    )
-    # if not os.path.exists(path):
-    #     os.makedirs(path)
-
+    start_time = time.time()
     print('Started')
     for i in range(repeats):
         params['seed'] = str(int(params['seed']) + 1)
-        out = subprocess.check_output(['../' + filename] + list(params), universal_newlines=True)
-        # out = np.array(out.split()).reshape(-1, 3 + int(params['discretization']))
-        out = np.array(out.split()).reshape(-1, 2)
-        # with open('{}/{}_{}_traj'.format(path, path, i), 'w+') as f:
-        #     for row in out:
-        #         f.write(b36encode(row[3:]) + '\n')
-        # with open('{}/{}_{}_pops'.format(path, path, i), 'w+') as f:
-        #     for row in out:
-        #         f.write(row[1] + '\n')
+        out = subprocess.Popen(['../' + filename] + list(params), universal_newlines=True, stdout=subprocess.PIPE)
         with open('{}_{}'.format(
                 params['birth_variance'],
                 params['death_variance'],
@@ -56,22 +41,13 @@ def launch(filename, params, repeats):
                 params['birth_variance'],
                 params['death_variance'],
             ))
-            for row in out:
-                f.write('{}\n'.format(row[1]))
-
-
-    # f = plt.figure()
-    # plt.title('{}, br: {}, dr: {}, bv: {}, dv: {}'.format(
-    #     params['birth_rate'],
-    #     params['death_rate'],
-    #     params['birth_variance'],
-    #     params['death_variance'],
-    # ))
-    # plt.xlabel('iteration')
-    # plt.ylabel('population')
-    # plt.plot(np.arange(int(params['iterations'])), out[:,1].astype(np.int))
-    # f.savefig(path + '.png')
-
+            while True:
+                row = out.stdout.readline()
+                if row == '':
+                    break
+                f.write('{}\n'.format(row.split()[1]))
+                f.flush()
+    print('Ended: {}'.format(time.time() - start_time))
 
 if __name__ == '__main__':
     usage_string = 'Usage: ' + sys.argv[0] + ' program_file parameters_file repeats [num_of_cores]'
@@ -95,8 +71,8 @@ if __name__ == '__main__':
 
     tp = ThreadPool(cores)
     for i, params in params_list.iterrows():
-        # launch(program_file, params, repeats)
-        tp.apply_async(launch, [program_file, params, repeats])
+        launch(program_file, params, repeats)
+        # tp.apply_async(launch, [program_file, params, repeats])
 
     tp.close()
     tp.join()
