@@ -290,7 +290,7 @@ int main(int argc, char ** argv) {
     death_kernel = precompute_kernel(1, grid);
 
     for (int i = 0; i != iterations; ++i) {
-        std::cout << i << " " << grid.get_population() << " " << second_momentum(grid) << " ";
+        std::cout << i << " " << grid.get_population() << " ";
 
         for (int j = 0; j < grid.get_discretization(); ++j) {
             std::cout << " " << grid[j].get_population();
