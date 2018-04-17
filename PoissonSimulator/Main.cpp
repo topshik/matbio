@@ -6,7 +6,6 @@ using namespace std;
 using namespace boost;
 using namespace chrono;
 using namespace random;
-
 /*
 
 */
@@ -31,6 +30,8 @@ int main(int argc, char **argv)
 	double death_var= atof(argv[9]);
 	int seed= atoi(argv[10]);
 
+	auto params= make_tuple(x_length, discretization, stop_time, delta_time, initial_population, birth_rate, death_rate, birth_var,death_var,seed);
+	
 	string death_kernel;
 	string birth_kernel;
 
@@ -57,7 +58,7 @@ int main(int argc, char **argv)
 		1000									// Birth kernel spline nodes
 	);
 
-	grid.save_slices(cout, discretization, stop_time, delta_time);
+	grid.save_slices<decltype(params)>(cout, params);
 	/*
 	double x_length_default = 1.0;
 	int x_partition_default = 100;

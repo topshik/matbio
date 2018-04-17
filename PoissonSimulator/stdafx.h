@@ -24,6 +24,10 @@
 #include <boost/random.hpp>
 #include <boost/random/exponential_distribution.hpp>
 #include <boost/math/tools/roots.hpp>
+#include <boost/fusion/sequence.hpp>
+#include <boost/fusion/include/sequence.hpp>
+#include <boost/fusion/adapted/std_tuple.hpp>
+
 #include "exprtk.hpp"
 #include "alglib/interpolation.h"
 
