@@ -6,7 +6,6 @@ using namespace std;
 using namespace alglib;
 using namespace spline_building;
 
-
 #ifndef POISSON_1D_H
 #define POISSON_1D_H
 
@@ -300,8 +299,13 @@ struct Grid_1d
 			}
 		}
 	}
+	template <typename T>
+	void save_slices(ostream& output, T params) {
 
-	void save_slices(ostream& output, int discretization, double stop_time, double delta_time) {
+		int discretization = get<1>(params);
+		double stop_time= get<2>(params);
+		double delta_time= get<3>(params);
+
 		auto discretize = [&](int discretization) {
 			vector<int> pops(discretization);
 			for (auto cell : cells) {
@@ -313,9 +317,17 @@ struct Grid_1d
 			}
 			return pops;
 		};
+		
+		output << "#";
+		boost::fusion::for_each(params, [&](auto item) {
+			output << item << ",";
+		});
+		
+		output << endl;
+
 		output << "0";
 		for (int pop : discretize(discretization)) {
-			output << "," << pop;
+			output << setprecision(15)<< "," << pop;
 		}
 		output << endl;
 
