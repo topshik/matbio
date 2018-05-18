@@ -147,7 +147,7 @@ std::vector<double> precompute_kernel(int type, Grid &grid) {
     }
     for (long i = 0; i <= max_distance; ++i) {
         result.push_back(
-            rate / (sqrt(2 * M_PI) * variance) * std::exp(-pow_int(distance(grid[0], grid[i]), 2) / (2 * variance * variance))
+            rate / (sqrt(2 * M_PI) * variance) * std::exp(-pow_int(distance(grid[0], grid[i]), 2) / (2 * variance * variance)) // 1 / var убрать
         );
     }
     return result;
@@ -204,11 +204,11 @@ void iteration(Grid & grid) {
         }
     }
     for (long i = 0; i != grid.get_discretization(); ++i) {
-        if (grid[i].get_population() && ( (float)rand() / RAND_MAX >= nodeath_matrix[i] + 1e-10 ) ) {
+        if (grid[i].get_population() && ( rand() / RAND_MAX >= nodeath_matrix[i] + 1e-10 ) ) {
             grid[i].set_population(grid[i].get_population() - 1);
             grid.set_population(grid.get_population() - 1);
         }
-        if ((float)rand() / RAND_MAX >= nobirth_matrix[i] + 1e-10 ) {
+        if ( rand() / RAND_MAX >= nobirth_matrix[i] + 1e-10 ) {
             grid[i].set_population(grid[i].get_population() + 1);
             grid.set_population(grid.get_population() + 1);
         }
@@ -293,7 +293,7 @@ int main(int argc, char ** argv) {
         std::cout << i << " " << grid.get_population() << " ";
 
         // for (int j = 0; j < grid.get_discretization(); ++j) {
-        //     std::cout << " " << grid[j].get_population();
+        //      std::cout << " " << grid[j].get_population();
         // }
         std::cout << std::endl;
         iteration(grid);
