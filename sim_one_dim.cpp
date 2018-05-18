@@ -204,11 +204,11 @@ void iteration(Grid & grid) {
         }
     }
     for (long i = 0; i != grid.get_discretization(); ++i) {
-        if (grid[i].get_population() && ( rand() / RAND_MAX >= nodeath_matrix[i] + 1e-10 ) ) {
+        if (grid[i].get_population() && ((float)rand() / RAND_MAX >= nodeath_matrix[i] + 1e-10)) {
             grid[i].set_population(grid[i].get_population() - 1);
             grid.set_population(grid.get_population() - 1);
         }
-        if ( rand() / RAND_MAX >= nobirth_matrix[i] + 1e-10 ) {
+        if ((float)rand() / RAND_MAX >= nobirth_matrix[i] + 1e-10) {
             grid[i].set_population(grid[i].get_population() + 1);
             grid.set_population(grid.get_population() + 1);
         }
